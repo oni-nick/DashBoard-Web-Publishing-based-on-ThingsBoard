@@ -22,7 +22,7 @@ self.onInit = function() {
     //  ****************************** 누적 절감액 카드 ******************************
     const updateSavingCard = (prefix, data, color) => {
         document.getElementById(`${prefix}-usage`).innerHTML = `<strong>${data.usage.toLocaleString()} kW</strong> 만큼 덜 사용해서,`
-        document.getElementById(`${prefix}-usage`).innerHTML = `<h4>${data.amount}원</h4><small>을 절약했어요.</small>`
+        document.getElementById(`${prefix}-usage`).innerHTML = `<strong>${data.amount}원</strong><small을 절약했어요.</small>`
         drawProgressBar(`#gauge-${prefix}`, data.percent, color);
         document.getElementById(`${prefix}-achievement`).textContent = `예상 사용량 대비 ${data.percent}를 달성했어요!`
     }
@@ -220,14 +220,28 @@ self.onInit = function() {
     };
 
 
-
-    // 차트 그리는 함수 호출
     
+    // 누적 절감액 카드 그리기
     updateSavingCard('year', savingCardData.year, "#4caf50");
     updateSavingCard('month', savingCardData.month, "#ff9800");
-
+    
+    // 차트 그리는 함수 호출
     drawLineChart();
     drawBarChart();
 
+    // 주요 구역 상태 (하단부)
+    
+    // 탭 클릭 이벤트 (필터링 흉내내기)
+    document.querySelectorAll('.status-tabs .tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // 모든 탭의 active 제거
+            document.querySelectorAll('.status-tabs .tab').forEach(t => t.classList.remove('active'));
+            // 클릭한 탭에 active 추가
+            tab.classList.add('active');
+            
+            // 실제 운영 시에는 여기서 데이터를 필터링하여 카드를 다시 그립니다.
+            console.log(tab.textContent.trim() + " 필터링 실행");
+        });
+    });
 
 }

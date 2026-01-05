@@ -77,7 +77,42 @@ main {
       &.line-chart-area {
         height: 300px;
       }
-      
+      .saving-container {
+        display: flex;
+        gap: 10px;
+        .saving-item {
+            flex: 1;
+            &:last-child { border-left: 1px solid #eee; padding-left: 15px; }
+            
+            .label-title { font-size: 0.9rem; color: #777; margin-bottom: 10px; }
+            .amount-text { 
+                font-size: 1.6rem; font-weight: 800; margin: 5px 0;
+                small { font-size: 0.9rem; font-weight: 400; color: #666; }
+                
+            }
+            .achievement-text { font-size: 0.8rem; color: #999; margin-top: 5px; }
+        }
+        }
+
+        // 하단 섹션들
+        .full-card { margin-bottom: $spacing; }
+        .eco-card {
+            .eco-content { display: flex; align-items: center; gap: 20px; }
+            .eco-icon { font-size: 3rem; background: #fff3e0; padding: 10px; border-radius: 50%; }
+        }
+
+        .major-status {
+            .status-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: $spacing;
+                .status-card {
+                @include card-base;
+                border-left: 6px solid $border-color;
+                &.danger { border-left-color: $danger-color; background: #fff5f5; }
+                }
+            }
+        } 
     }
   }
 
@@ -86,14 +121,112 @@ main {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 15px;
 
-    .status-card {
-      @include card-base;
-      height: 120px;
-      border-left: 5px solid $danger-color; // 기본은 위험 상태
-      
-      &.safe {
-        border-left-color: $safe-color;
-      }
-    }
+          // 상태별 컬러 변수
+        $color-danger: #ff5252;
+        $color-warning: #ffa726;
+        $color-success: #66bb6a;
+        $color-gray: #bdbdbd;
+
+        .major-status-section {
+            margin-top: 20px;
+
+            .status-tabs {
+                display: flex;
+                align-items: center;
+                border-bottom: 1px solid #eee;
+                background: #fff;
+                padding: 0 20px;
+
+                .tab {
+                    padding: 15px 20px;
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                    color: #666;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    position: relative;
+
+                    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+                    .count { font-size: 0.8rem; opacity: 0.7; margin-left: 5px; }
+
+                    &.active {
+                        font-weight: bold;
+                        color: #000;
+                        &::after {
+                            content: '';
+                            position: absolute;
+                            bottom: 0; left: 0; width: 100%; height: 3px;
+                        }
+                    }
+
+                    // 탭 컬러 정의
+                    &.danger { .dot { background: $color-danger; } &.active::after { background: $color-danger; } }
+                    &.warning { .dot { background: $color-warning; } &.active::after { background: $color-warning; } }
+                    &.success { .dot { background: $color-success; } &.active::after { background: $color-success; } }
+                    &.gray { .dot { background: $color-gray; } &.active::after { background: $color-gray; } }
+                }
+
+                .weather-info {
+                    margin-left: auto;
+                    display: flex;
+                    gap: 15px;
+                    font-size: 0.85rem;
+                    color: #888;
+                }
+            }
+
+            .status-card-container {
+                padding: 20px;
+                &.bg-danger { background-color: #fff5f5; } // 점검 필요 시 배경색
+
+                .status-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr; // 2열 구조
+                    gap: 20px;
+                }
+            }
+
+            .zone-card {
+                background: #fff;
+                border-radius: 8px;
+                border: 1px solid #eee;
+                border-left: 6px solid #ccc; // 기본 왼쪽 선
+                padding: 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+                &.danger {
+                    border-left-color: $color-danger;
+                    .status-label { color: $color-danger; font-weight: bold; }
+                    .dot { background: $color-danger; }
+                }
+
+                .card-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    h4 { margin: 0; font-size: 1.2rem; }
+                    .status-label { 
+                        font-size: 0.85rem;
+                        display: flex; align-items: center; gap: 5px;
+                        .dot { width: 6px; height: 6px; border-radius: 50%; }
+                    }
+                }
+
+                .card-content {
+                    .info-row {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 10px;
+                        .label { color: #888; font-size: 0.9rem; }
+                        .value { 
+                            font-weight: 600; 
+                            &.badge { color: $primary-dark; border: 1px solid #eee; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
+                        }
+                    }
+                }
+            }
+        }
   }
 }

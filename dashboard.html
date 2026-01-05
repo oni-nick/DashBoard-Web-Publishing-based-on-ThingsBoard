@@ -23,20 +23,18 @@
 
         <div class="dashboard-grid">
             <div class="section-left">
-                <div class="card">누적 절감액
+                <div class="card">
+                    <h3>누적 절감액</h3>
                     <div class="saving-container">
-                <div class="saving-item">
-                <div class="label-title">올해</div>
-                <div id="year-usage" class="usage-text"></div> <div id="year-amount" class="amount-text"></div> <div id="gauge-year"></div> <div id="year-achievement" class="achievement-text"></div> </div>
 
-                <div class="saving-item">
-                <div class="label-title">이번 달</div>
-                <div id="month-usage" class="usage-text"></div>
-                <div id="month-amount" class="amount-text"></div>
-                <div id="gauge-month"></div>
-                <div id="month-achievement" class="achievement-text"></div>
-                </div>
-            </div>
+                        <div class="saving-item">
+                        <div class="label-title">올해</div>
+                        <div id="year-usage" class="usage-text"></div> <div id="year-amount" class="amount-text"></div> <div id="gauge-year"></div> <div id="year-achievement" class="achievement-text"></div> </div>
+    
+                        <div class="saving-item">
+                        <div class="label-title">이번 달</div>
+                        <div id="month-usage" class="usage-text"></div><div id="month-amount" class="amount-text"></div><div id="gauge-month"></div><div id="month-achievement" class="achievement-text"></div></div>
+                    </div>
                 </div>
                 <div class="card line-chart-area">월별 절감량 추이
                     <div id="graph-target" style="width: 100%; height: 250px;"></div>
@@ -56,8 +54,65 @@
 
         <h3>주요 구역 상태</h3>
         <div class="status-footer">
-            <div class="status-card">사무실 3 (점검 필요)</div>
-            <div class="status-card">부품 창고 1 (점검 필요)</div>
+            <section class="major-status-section">
+                <div class="status-tabs">
+                    <div class="tab active danger">
+                        <span class="dot"></span> 점검 필요 <span class="count">2개 구역</span>
+                    </div>
+                    <div class="tab warning">
+                        <span class="dot"></span> 운전 활발 <span class="count">4개 구역</span>
+                    </div>
+                    <div class="tab success">
+                        <span class="dot"></span> 정상 <span class="count">14개 구역</span>
+                    </div>
+                    <div class="tab gray">
+                        <span class="dot"></span> 기타 <span class="count">2개 구역</span>
+                    </div>
+                    <div class="weather-info">
+                        <span>📍 포항시 북구 흥해읍</span>
+                        <span>🌡️ 13°C / 18°C</span>
+                        <span>💧 78%</span>
+                    </div>
+                </div>
+
+                <div class="status-card-container bg-danger">
+                    <div class="status-grid">
+                        <div class="zone-card danger">
+                            <div class="card-header">
+                                <h4>사무실 3</h4>
+                                <span class="status-label"><span class="dot"></span> 점검 필요</span>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-row">
+                                    <span class="label">현재 온도</span>
+                                    <span class="value">22°C</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">제어 모드</span>
+                                    <span class="value badge">목표 절감</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="zone-card danger">
+                            <div class="card-header">
+                                <h4>부품 창고 1</h4>
+                                <span class="status-label"><span class="dot"></span> 점검 필요</span>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-row">
+                                    <span class="label">현재 온도</span>
+                                    <span class="value">22°C</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">제어 모드</span>
+                                    <span class="value badge">목표 절감</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     </main>
 
