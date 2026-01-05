@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Energy Dashboard Layout</title>
+</head>
+<body>
+
+    <aside>
+        <nav>
+            <p>종합 현황</p>
+            <p>에너지 분석</p>
+            <p>알림 현황</p>
+            <p>설정</p>
+        </nav>
+    </aside>
+
+    <main>
+        <header>
+            <h2>종합 현황</h2>
+            <span>2025-06-10 (화) 04:55:32 PM 기준</span>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="section-left">
+                <div class="card">누적 절감액
+                    <div class="saving-container">
+                <div class="saving-item">
+                <div class="label-title">올해</div>
+                <div id="year-usage" class="usage-text"></div> <div id="year-amount" class="amount-text"></div> <div id="gauge-year"></div> <div id="year-achievement" class="achievement-text"></div> </div>
+
+                <div class="saving-item">
+                <div class="label-title">이번 달</div>
+                <div id="month-usage" class="usage-text"></div>
+                <div id="month-amount" class="amount-text"></div>
+                <div id="gauge-month"></div>
+                <div id="month-achievement" class="achievement-text"></div>
+                </div>
+            </div>
+                </div>
+                <div class="card line-chart-area">월별 절감량 추이
+                    <div id="graph-target" style="width: 100%; height: 250px;"></div>
+                </div>
+                <div class="card">올해의 환경 기여도</div>
+            </div>
+
+            <div class="section-right">
+                <div class="card">이번 달 전력 사용량</div>
+                <div class="card" style="height: 400px;">
+                    구역별 전력 사용량 랭킹
+                    <div id="bar-chart-target" style="width: 100%; height: 320px;"></div>
+                </div>
+                <div class="card">현황 요약</div>
+            </div>
+        </div>
+
+        <h3>주요 구역 상태</h3>
+        <div class="status-footer">
+            <div class="status-card">사무실 3 (점검 필요)</div>
+            <div class="status-card">부품 창고 1 (점검 필요)</div>
+        </div>
+    </main>
+
+</body>
+</html>
