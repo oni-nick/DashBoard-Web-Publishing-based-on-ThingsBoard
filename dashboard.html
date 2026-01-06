@@ -1,120 +1,151 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>Energy Dashboard Layout</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Energy Dashboard</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="./publishing02.css" />
 </head>
 <body>
-
-    <aside>
-        <nav>
-            <p>종합 현황</p>
-            <p>에너지 분석</p>
-            <p>알림 현황</p>
-            <p>설정</p>
-        </nav>
-    </aside>
-
-    <main>
-        <header>
-            <h2>종합 현황</h2>
-            <span>2025-06-10 (화) 04:55:32 PM 기준</span>
+    <main class="dashboard-wrapper">
+        <header class="page-header">
+            <h2 class="title">종합 현황</h2>
+            <span class="timestamp">2025-06-10 (화) 04:55:32 PM 기준</span>
         </header>
 
         <div class="dashboard-grid">
-            <div class="section-left">
-                <div class="card">
-                    <h3>누적 절감액</h3>
+            <!-- 왼쪽 컬럼 -->
+            <section class="section-left">
+                <article class="card saving-card">
+                    <h3 class="card-title">누적 절감액</h3>
                     <div class="saving-container">
-
                         <div class="saving-item">
-                        <div class="label-title">올해</div>
-                        <div id="year-usage" class="usage-text"></div> <div id="year-amount" class="amount-text"></div> <div id="gauge-year"></div> <div id="year-achievement" class="achievement-text"></div> </div>
-    
+                            <div class="label-title">올해</div>
+                            <p class="usage-desc"><strong>12340.99 kWh</strong> 만큼 덜 사용해서,</p>
+                            <p class="amount-val">1,099,999원 <small>을 절약했어요.</small></p>
+                            <div class="gauge-bar green">
+                                <span class="fill" style="width:23%"></span>
+                                <span class="percent">23%</span>
+                            </div>
+                            <p class="footnote">예상 사용량 대비 23%를 달성했어요!</p>
+                        </div>
                         <div class="saving-item">
-                        <div class="label-title">이번 달</div>
-                        <div id="month-usage" class="usage-text"></div><div id="month-amount" class="amount-text"></div><div id="gauge-month"></div><div id="month-achievement" class="achievement-text"></div></div>
+                            <div class="label-title">이번 달</div>
+                            <p class="usage-desc"><strong>940.99 kWh</strong> 만큼 덜 사용해서,</p>
+                            <p class="amount-val">29,999원 <small>을 절약했어요.</small></p>
+                            <div class="gauge-bar orange">
+                                <span class="fill" style="width:7%"></span>
+                                <span class="percent">7%</span>
+                            </div>
+                            <p class="footnote">예상 사용량 대비 7%를 달성했어요!</p>
+                        </div>
                     </div>
-                </div>
-                <div class="card line-chart-area">월별 절감량 추이
-                    <div id="graph-target" style="width: 100%; height: 250px;"></div>
-                </div>
-                <div class="card">올해의 환경 기여도</div>
-            </div>
+                </article>
 
-            <div class="section-right">
-                <div class="card">이번 달 전력 사용량</div>
-                <div class="card" style="height: 400px;">
-                    구역별 전력 사용량 랭킹
-                    <div id="bar-chart-target" style="width: 100%; height: 320px;"></div>
-                </div>
-                <div class="card">현황 요약</div>
-            </div>
+                <article class="card chart-card">
+                    <h3 class="card-title">월별 절감량 추이</h3>
+                    <div class="line-chart" id="line-chart"></div>
+                </article>
+
+                <article class="card eco-card">
+                    <h3 class="card-title">올해의 환경 기여도</h3>
+                    <div class="eco-content">
+                        <div class="eco-icon">🌱</div>
+                        <div class="eco-text">
+                            <p>지금까지 <strong>99 CO₂</strong> 이산화탄소 배출량을 감축했어요.</p>
+                            <p class="highlight"><strong>10그루</strong> 소나무를 심은 것과 같아요.</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- 오른쪽 컬럼 -->
+            <section class="section-right">
+                <article class="card usage-card">
+                    <div class="card-title arrow">이번 달 전력 사용량</div>
+                    <div class="usage-stats">
+                        <div class="stat">
+                            <span class="label">전력 사용량</span>
+                            <span class="value">45.51 kWh</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">예상 요금</span>
+                            <span class="value strong">9,740원</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card ranking-card">
+                    <div class="card-title arrow">구역별 이번 달 전력 사용량 랭킹</div>
+                    <div class="bar-chart" id="bar-chart"></div>
+                </article>
+
+                <article class="card summary-card">
+                    <div class="card-title with-divider">현황 요약</div>
+                    <div class="summary-grid">
+                        <div class="summary-block">
+                            <div class="label">가동 현황</div>
+                            <div class="value">17/20 <span class="sub">(통신이상: 1)</span></div>
+                        </div>
+                        <div class="summary-block">
+                            <div class="label">제어 모드</div>
+                            <div class="modes">
+                                <div><span class="tag blue">쾌적 절감</span>4개소 (20%)</div>
+                                <div><span class="tag indigo">목표 절감</span>14개소 (70%)</div>
+                                <div><span class="tag purple">수동 제어</span>2개소 (10%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
         </div>
 
-        <h3>주요 구역 상태</h3>
-        <div class="status-footer">
-            <section class="major-status-section">
+        <section class="major-status-container">
+            <h3 class="section-main-title">주요 구역 상태</h3>
+            <div class="status-board">
                 <div class="status-tabs">
-                    <div class="tab active danger">
-                        <span class="dot"></span> 점검 필요 <span class="count">2개 구역</span>
-                    </div>
-                    <div class="tab warning">
-                        <span class="dot"></span> 운전 활발 <span class="count">4개 구역</span>
-                    </div>
-                    <div class="tab success">
-                        <span class="dot"></span> 정상 <span class="count">14개 구역</span>
-                    </div>
-                    <div class="tab gray">
-                        <span class="dot"></span> 기타 <span class="count">2개 구역</span>
-                    </div>
-                    <div class="weather-info">
-                        <span>📍 포항시 북구 흥해읍</span>
-                        <span>🌡️ 13°C / 18°C</span>
-                        <span>💧 78%</span>
+                    <div class="tab active danger"><span class="dot"></span> 점검 필요 <span class="count">2개 구역</span></div>
+                    <div class="tab warning"><span class="dot"></span> 운전 활발 <span class="count">4개 구역</span></div>
+                    <div class="tab success"><span class="dot"></span> 정상 <span class="count">14개 구역</span></div>
+                    <div class="tab gray"><span class="dot"></span> 기타 <span class="count">2개 구역</span></div>
+                    <div class="weather-line">
+                        <span class="weather-text">포항시 북구 흥해읍</span>
+                        <span class="weather-text">13°C / 18°C</span>
+                        <span class="weather-text">습도 78%</span>
                     </div>
                 </div>
+                    
 
-                <div class="status-card-container bg-danger">
+                <div class="status-content bg-danger">
                     <div class="status-grid">
                         <div class="zone-card danger">
                             <div class="card-header">
                                 <h4>사무실 3</h4>
                                 <span class="status-label"><span class="dot"></span> 점검 필요</span>
                             </div>
-                            <div class="card-content">
-                                <div class="info-row">
-                                    <span class="label">현재 온도</span>
-                                    <span class="value">22°C</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="label">제어 모드</span>
-                                    <span class="value badge">목표 절감</span>
-                                </div>
+                            <div class="card-body">
+                                <div class="info-row"><span class="label">현재 온도</span><span class="value">22°C</span></div>
+                                <div class="info-row"><span class="label">제어 모드</span><span class="value badge">목표 절감</span></div>
                             </div>
                         </div>
-
                         <div class="zone-card danger">
                             <div class="card-header">
                                 <h4>부품 창고 1</h4>
                                 <span class="status-label"><span class="dot"></span> 점검 필요</span>
                             </div>
-                            <div class="card-content">
-                                <div class="info-row">
-                                    <span class="label">현재 온도</span>
-                                    <span class="value">22°C</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="label">제어 모드</span>
-                                    <span class="value badge">목표 절감</span>
-                                </div>
+                            <div class="card-body">
+                                <div class="info-row"><span class="label">현재 온도</span><span class="value">22°C</span></div>
+                                <div class="info-row"><span class="label">제어 모드</span><span class="value badge">목표 절감</span></div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
+            </div>
+        </section>
     </main>
 
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="./publishing02.js"></script>
 </body>
 </html>

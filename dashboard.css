@@ -1,275 +1,138 @@
-body {
-  display: flex;
-  margin: 0;
-  font-family: "Pretendard", sans-serif;
-  background: #f0f2f5;
-  height: 100vh;
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:#f3f4f6;
+  color:#111827;
 }
-
-aside {
-  width: 200px;
-  background: #1a237e;
-  color: #ffffff;
-  padding: 20px;
+.dashboard-wrapper{
+  max-width:1260px;
+  margin:16px auto 32px;
+  padding:0 16px 40px;
 }
-aside nav p {
-  margin-bottom: 15px;
-  cursor: pointer;
-  opacity: 0.8;
+.page-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-bottom:16px;
 }
-aside nav p:hover {
-  opacity: 1;
-  font-weight: bold;
+.title{font-size:22px;font-weight:700;letter-spacing:0.35px;color:#0f172a;}
+.timestamp{font-size:12px;color:#7b808a;}
+.dashboard-grid{
+  display:grid;
+  grid-template-columns:1.6fr 1fr;
+  gap:16px;
+  align-items:start;
+  margin-bottom:18px;
 }
-
-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  overflow-y: auto;
+.card{
+  background:#fff;
+  border:1px solid #d7dce3;
+  border-radius:4px;
+  padding:14px 18px 16px;
+  box-shadow:0 1px 2px rgba(15,23,42,0.04);
 }
-main header {
-  height: 60px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+.card-title{
+  font-size:15px;
+  font-weight:700;
+  color:#0f172a;
+  margin-bottom:10px;
 }
-main header h2 {
-  margin: 0;
+.card-title.arrow::after{
+  content:"›";
+  margin-left:6px;
+  color:#6b7280;
+  font-weight:700;
 }
-main header span {
-  color: #666;
-  font-size: 0.9rem;
+.saving-card .saving-container{display:flex;gap:16px;}
+.saving-item{flex:1;}
+.label-title{font-size:12px;color:#8c92a3;margin-bottom:6px;}
+.usage-desc{font-size:13px;color:#4b5563;margin-bottom:4px;}
+.amount-val{font-size:24px;font-weight:700;color:#0f172a;margin-bottom:10px;}
+.amount-val small{font-weight:400;font-size:13px;color:#6b7280;}
+.gauge-bar{
+  position:relative;
+  height:16px;
+  background:linear-gradient(to right,#e5e7eb 0,#e5e7eb 40%,#f9fafb 40%,#f9fafb 100%);
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:6px;
 }
-main .dashboard-grid {
-  display: grid;
-  grid-template-columns: 7fr 3fr;
-  gap: 20px;
-  margin-bottom: 20px;
+.gauge-bar .fill{display:block;height:100%;background:#36b24f;}
+.gauge-bar.orange .fill{background:#f4a02c;}
+.gauge-bar .percent{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  font-size:12px;
+  font-weight:700;
+  color:#fff;
 }
-main .dashboard-grid .section-left, main .dashboard-grid .section-right {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.footnote{font-size:12px;color:#7b808a;}
+.chart-card .line-chart{width:100%;height:260px;}
+.chart-card svg text{font-family:Pretendard, sans-serif;}
+.chart-card .line-chart .axis text{font-size:11px;fill:#80889a;}
+.chart-card .line-chart .grid line{stroke:#e5e7eb;stroke-dasharray:3 3;}
+.chart-card .line-chart .grid path{stroke:none;}
+.eco-card .eco-content{display:flex;align-items:center;gap:16px;}
+.eco-icon{font-size:28px;}
+.eco-text p{font-size:14px;color:#4b5563;}
+.eco-text .highlight{color:#111827;margin-top:2px;}
+.usage-card .usage-stats{display:flex;justify-content:space-between;gap:12px;}
+.usage-card .stat{display:flex;flex-direction:column;gap:6px;}
+.usage-card .label{font-size:12px;color:#7b808a;}
+.usage-card .value{font-size:18px;font-weight:700;color:#0f172a;}
+.usage-card .value.strong{color:#0f172a;}
+.ranking-card .bar-chart{width:100%;height:260px;}
+.ranking-card svg text{font-family:Pretendard, sans-serif;font-size:11px;fill:#80889a;}
+.ranking-card .bar-chart .bar-label{fill:#4b5563;}
+.summary-card .summary-grid{display:flex;gap:20px;flex-wrap:wrap;}
+.summary-block .label{font-size:12px;color:#7b808a;margin-bottom:6px;}
+.summary-block .value{font-size:16px;font-weight:700;color:#0f172a;}
+.summary-block .value .sub{font-size:12px;color:#6b7280;margin-left:4px;}
+.modes{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#4b5563;}
+.tag{display:inline-block;min-width:70px;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700;margin-right:6px;}
+.tag.blue{background:#e9f2ff;color:#2f66c1;}
+.tag.indigo{background:#e9ebff;color:#4b5ac7;}
+.tag.purple{background:#f0e9ff;color:#6e57c5;}
+.weather-card .card-title{margin-bottom:8px;}
+.weather-line{display:flex;gap:16px;align-items:center;font-size:12px;color:#4b5563;}
+.weather-text{white-space:nowrap;}
+.major-status-container{margin-top:12px;}
+.section-main-title{font-size:16px;font-weight:700;color:#0f172a;margin:0 0 6px 4px;}
+.status-board{background:#fff;border:1px solid #d7dce3;}
+.status-tabs{display:flex;align-items:center;border-bottom:1px solid #d7dce3;padding:0 12px;}
+.status-tabs .tab{padding:14px 14px;font-size:12px;color:#8c92a3;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.status-tabs .tab.active{color:#e24334;font-weight:700;border-bottom:2px solid #e24334;}
+.status-tabs .dot{width:7px;height:7px;border-radius:50%;background:#d1d5db;}
+.status-tabs .danger .dot{background:#e24334;}
+.status-tabs .warning .dot{background:#f4a02c;}
+.status-tabs .success .dot{background:#36b24f;}
+.status-tabs .gray .dot{background:#9ca3af;}
+.status-content{padding:10px 14px 12px;background:#ffecec;}
+.status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;}
+.zone-card{background:#fff;border:1px solid #d7dce3;border-left:4px solid #e24334;padding:12px 14px;}
+.zone-card .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.zone-card h4{font-size:16px;font-weight:700;color:#0f172a;}
+.zone-card .status-label{font-size:12px;color:#e24334;}
+.zone-card .info-row{display:flex;justify-content:space-between;font-size:13px;color:#4b5563;margin-bottom:4px;}
+.zone-card .info-row .label{color:#8c92a3;}
+.zone-card .info-row .badge{color:#3f67b1;border:1px solid #3f67b1;border-radius:4px;padding:2px 6px;font-weight:700;}
+.card-title.with-divider{
+  position:relative;
+  padding-bottom:8px;
+  margin-bottom:8px;
 }
-main .dashboard-grid .card {
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  padding: 20px;
-  min-height: 150px;
+.card-title.with-divider::after{
+  content:"";
+  position:absolute;
+  left:-18px;
+  right:-18px;
+  bottom:0;
+  height:1px;
+  background:#e5e7eb;
 }
-main .dashboard-grid .card.line-chart-area {
-  height: 300px;
+@media(max-width:1100px){
+  .dashboard-grid{grid-template-columns:1fr;}
+  .usage-card .usage-stats{flex-direction:column;}
 }
-main .dashboard-grid .card .saving-container {
-  display: flex;
-  gap: 10px;
-}
-main .dashboard-grid .card .saving-container .saving-item {
-  flex: 1;
-}
-main .dashboard-grid .card .saving-container .saving-item:last-child {
-  border-left: 1px solid #eee;
-  padding-left: 15px;
-}
-main .dashboard-grid .card .saving-container .saving-item .label-title {
-  font-size: 0.9rem;
-  color: #777;
-  margin-bottom: 10px;
-}
-main .dashboard-grid .card .saving-container .saving-item .amount-text {
-  font-size: 1.6rem;
-  font-weight: 800;
-  margin: 5px 0;
-}
-main .dashboard-grid .card .saving-container .saving-item .amount-text small {
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: #666;
-}
-main .dashboard-grid .card .saving-container .saving-item .achievement-text {
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 5px;
-}
-main .dashboard-grid .card .full-card {
-  margin-bottom: 20px;
-}
-main .dashboard-grid .card .eco-card .eco-content {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-main .dashboard-grid .card .eco-card .eco-icon {
-  font-size: 3rem;
-  background: #fff3e0;
-  padding: 10px;
-  border-radius: 50%;
-}
-main .dashboard-grid .card .major-status .status-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-main .dashboard-grid .card .major-status .status-grid .status-card {
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  padding: 20px;
-  border-left: 6px solid #ddd;
-}
-main .dashboard-grid .card .major-status .status-grid .status-card.danger {
-  border-left-color: #ff5252;
-  background: #fff5f5;
-}
-main .status-footer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-}
-main .status-footer .major-status-section {
-  margin-top: 20px;
-}
-main .status-footer .major-status-section .status-tabs {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  background: #fff;
-  padding: 0 20px;
-}
-main .status-footer .major-status-section .status-tabs .tab {
-  padding: 15px 20px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #666;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-}
-main .status-footer .major-status-section .status-tabs .tab .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-main .status-footer .major-status-section .status-tabs .tab .count {
-  font-size: 0.8rem;
-  opacity: 0.7;
-  margin-left: 5px;
-}
-main .status-footer .major-status-section .status-tabs .tab.active {
-  font-weight: bold;
-  color: #000;
-}
-main .status-footer .major-status-section .status-tabs .tab.active::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-}
-main .status-footer .major-status-section .status-tabs .tab.danger .dot {
-  background: #ff5252;
-}
-main .status-footer .major-status-section .status-tabs .tab.danger.active::after {
-  background: #ff5252;
-}
-main .status-footer .major-status-section .status-tabs .tab.warning .dot {
-  background: #ffa726;
-}
-main .status-footer .major-status-section .status-tabs .tab.warning.active::after {
-  background: #ffa726;
-}
-main .status-footer .major-status-section .status-tabs .tab.success .dot {
-  background: #66bb6a;
-}
-main .status-footer .major-status-section .status-tabs .tab.success.active::after {
-  background: #66bb6a;
-}
-main .status-footer .major-status-section .status-tabs .tab.gray .dot {
-  background: #bdbdbd;
-}
-main .status-footer .major-status-section .status-tabs .tab.gray.active::after {
-  background: #bdbdbd;
-}
-main .status-footer .major-status-section .status-tabs .weather-info {
-  margin-left: auto;
-  display: flex;
-  gap: 15px;
-  font-size: 0.85rem;
-  color: #888;
-}
-main .status-footer .major-status-section .status-card-container {
-  padding: 20px;
-}
-main .status-footer .major-status-section .status-card-container.bg-danger {
-  background-color: #fff5f5;
-}
-main .status-footer .major-status-section .status-card-container .status-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-main .status-footer .major-status-section .zone-card {
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #eee;
-  border-left: 6px solid #ccc;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-main .status-footer .major-status-section .zone-card.danger {
-  border-left-color: #ff5252;
-}
-main .status-footer .major-status-section .zone-card.danger .status-label {
-  color: #ff5252;
-  font-weight: bold;
-}
-main .status-footer .major-status-section .zone-card.danger .dot {
-  background: #ff5252;
-}
-main .status-footer .major-status-section .zone-card .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-main .status-footer .major-status-section .zone-card .card-header h4 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-main .status-footer .major-status-section .zone-card .card-header .status-label {
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-main .status-footer .major-status-section .zone-card .card-header .status-label .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-main .status-footer .major-status-section .zone-card .card-content .info-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-main .status-footer .major-status-section .zone-card .card-content .info-row .label {
-  color: #888;
-  font-size: 0.9rem;
-}
-main .status-footer .major-status-section .zone-card .card-content .info-row .value {
-  font-weight: 600;
-}
-main .status-footer .major-status-section .zone-card .card-content .info-row .value.badge {
-  color: #1a237e;
-  border: 1px solid #eee;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}/*# sourceMappingURL=dashboard.css.map */

@@ -1,247 +1,288 @@
-self.onInit = function() {
-    // 1. 데이터 준비
-    const lineData = [
-        { x : 1, y : 18000 }, { x : 2, y : 26000 }, { x : 3, y : 25000 },
-        { x : 4, y : 22000 }, { x : 5, y : 17000 }, { x : 6, y : 21000 },
-        { x : 7, y : 19000 }, { x : 8, y : 25000 }, { x : 9, y : 40000 },
-        { x : 10, y : 45000 }, { x : 11, y : 40000 }, { x : 12, y : 20000 }
-    ];
+// 대시보드에 사용될 JSON 데이터 정의
+const dashboardData = {
+  lineChart: {
+    maxY: 50000,
+    points: [
+      { month: "1월", value: 18000 },
+      { month: "2월", value: 27000 },
+      { month: "3월", value: 25000 },
+      { month: "4월", value: 22000 },
+      { month: "5월", value: 19000 },
+      { month: "6월", value: 23000 },
+      { month: "7월", value: 26000 },
+      { month: "8월", value: 32000 },
+      { month: "9월", value: 42000 },
+      { month: "10월", value: 47000 },
+      { month: "11월", value: 43000 },
+      { month: "12월", value: 26000 }
+    ]
+  },
+  barChart: {
+    maxX: 110,
+    items: [
+      { label: "사무실 1", value: 90 },
+      { label: "사무실 2", value: 82 },
+      { label: "사무실 3", value: 70 },
+      { label: "사무실 4", value: 58 },
+      { label: "부품 창고", value: 46 },
+      { label: "조립 라인 1", value: 22 },
+      { label: "조립 라인 2", value: 18 },
+      { label: "휴게실", value: 18 }
+    ]
+  }
+};
 
-     const barData = [
-        {zone : "사무실1", value : 72 }, {zone : "사무실2", value : 69 }, {zone : "사무실3", value : 50 }, 
-        {zone : "사무실4", value : 45 }, {zone : "부품창고", value : 27 }, {zone : "휴게실", value : 12 }, 
-        {zone : "조립라인1", value : 15 }, {zone : "조립라인2", value : 14 }
-        ].sort((a,b) => (b.value - a.value))
+// 공통 SVG 생성 유틸
+function createSvg({ container, width, height, margin }) {
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
 
-    const savingCardData = {
-        year: {usage: 12340.99, amount: 1099999, percent: 23},
-        month: {usage: 94099, amount: 29999, percent: 7 } 
-    };
+  const svg = d3
+    .select(container)
+    .append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
 
+  const g = svg
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    //  ****************************** 누적 절감액 카드 ******************************
-    const updateSavingCard = (prefix, data, color) => {
-        document.getElementById(`${prefix}-usage`).innerHTML = `<strong>${data.usage.toLocaleString()} kW</strong> 만큼 덜 사용해서,`
-        document.getElementById(`${prefix}-usage`).innerHTML = `<strong>${data.amount}원</strong><small을 절약했어요.</small>`
-        drawProgressBar(`#gauge-${prefix}`, data.percent, color);
-        document.getElementById(`${prefix}-achievement`).textContent = `예상 사용량 대비 ${data.percent}를 달성했어요!`
-    }
+  return { svg, g, innerWidth, innerHeight };
+}
 
-    //  ****************************** 라인차트 함수 ******************************
-    const drawLineChart = () => {
-        // 2. 캔버스 설계 (기준 좌표 설정)
-    const baseWidth = 800; 
-    const baseHeight = 350; // 축 공간 확보를 위해 높이를 조금 늘림
-    const margin = { top: 30, right: 30, bottom: 50, left: 70 }; // 하단/좌측 여백 증가
+// 라인 차트 그리기
+function drawLineChart(config) {
+  const { root, selector, data, maxY } = config;
+  const container = root.querySelector(selector);
+  if (!container) return;
 
-    d3.select("#graph-target").selectAll("*").remove();
+  container.innerHTML = "";
 
-    const svg = d3.select("#graph-target")
-        .append("svg")
-        .attr("viewBox", `0 0 ${baseWidth} ${baseHeight}`)
-        .attr("preserveAspectRatio", "xMidYMid meet")
-        .style("width", "100%")
-        .style("height", "100%");
+  const width = 620;
+  const height = 260;
+  const margin = { top: 10, right: 16, bottom: 28, left: 54 };
 
-    // 3. 척도(Scale) 설정
-    const xScale = d3.scaleLinear()
-        .domain([1, 12])
-        .range([margin.left, baseWidth - margin.right]);
+  const { g, innerWidth, innerHeight } = createSvg({
+    container,
+    width,
+    height,
+    margin
+  });
 
-    const yScale = d3.scaleLinear()
-        .domain([0, 50000]) // Y축 범위를 0 ~ 50,000으로 고정
-        .range([baseHeight - margin.bottom, margin.top]);
+  const x = d3
+    .scalePoint()
+    .domain(data.map(d => d.month))
+    .range([0, innerWidth])
+    .padding(0.5);
 
-    // 4. 축(Axis) 요리사 정의
-    // X축: 하단에 위치, 12개의 눈금 표시, '월' 붙이기
-    const xAxis = d3.axisBottom(xScale)
-        .ticks(12)
-        .tickFormat(d => d + "월");
+  const y = d3
+    .scaleLinear()
+    .domain([0, maxY])
+    .nice()
+    .range([innerHeight, 0]);
 
-    // Y축: 좌측에 위치, 숫자에 콤마(,) 넣기
-    const yAxis = d3.axisLeft(yScale)
-        .ticks(5)
-        .tickFormat(d => d.toLocaleString());
+  // Y축 그리드
+  const yAxis = d3
+    .axisLeft(y)
+    .ticks(5)
+    .tickSize(-innerWidth)
+    .tickFormat(d3.format(","));
 
-    // 5. 그라데이션 및 요리사(Generator) 준비 (이전과 동일)
-    const defs = svg.append("defs");
-    const gradient = defs.append("linearGradient").attr("id", "area-gradient").attr("x1", "0%").attr("y1", "0%").attr("x2", "0%").attr("y2", "100%");
-    gradient.append("stop").attr("offset", "0%").attr("stop-color", "#3f51b5").attr("stop-opacity", 0.4);
-    gradient.append("stop").attr("offset", "100%").attr("stop-color", "#3f51b5").attr("stop-opacity", 0);
+  g.append("g")
+    .attr("class", "grid")
+    .call(yAxis)
+    .select(".domain")
+    .remove();
 
-    const lineGen = d3.line().x(d => xScale(d.x)).y(d => yScale(d.y)).curve(d3.curveMonotoneX);
-    const areaGen = d3.area().x(d => xScale(d.x)).y0(baseHeight - margin.bottom).y1(d => yScale(d.y)).curve(d3.curveMonotoneX);
+  // X축
+  const xAxis = d3.axisBottom(x);
 
-    // 6. 실제 그리기 시작
-    
-    // [추가] X축 그리기
-    svg.append("g")
-        .attr("transform", `translate(0, ${baseHeight - margin.bottom})`) // 바닥으로 이동
-        .call(xAxis)
-        .attr("color", "#666"); // 축 색상 조정
+  g.append("g")
+    .attr("class", "axis x-axis")
+    .attr("transform", `translate(0,${innerHeight})`)
+    .call(xAxis)
+    .select(".domain")
+    .attr("stroke", "none");
 
-    // [추가] Y축 그리기
-    svg.append("g")
-        .attr("transform", `translate(${margin.left}, 0)`) // 왼쪽 여백만큼 이동
-        .call(yAxis)
-        .attr("color", "#666");
+  g.selectAll(".x-axis line").attr("stroke", "none");
 
-    // 영역(Area) 및 선(Line)
-    svg.append("path").datum(lineData).attr("d", areaGen).attr("fill", "url(#area-gradient)");
-    svg.append("path").datum(lineData).attr("d", lineGen).attr("fill", "none").attr("stroke", "#3f51b5").attr("stroke-width", 3);
+  // 영역 그라데이션 정의
+  const defs = g.append("defs");
+  const gradient = defs
+    .append("linearGradient")
+    .attr("id", "line-area-gradient")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "0%")
+    .attr("y2", "100%");
 
-    // 점(Points)
-    svg.selectAll(".dot")
-        .data(lineData)
-        .enter()
-        .append("circle")
-        .attr("cx", d => xScale(d.x))
-        .attr("cy", d => yScale(d.y))
-        .attr("r", 5)
-        .attr("fill", "#3f51b5")
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 2);
-    }
-    
-    
-    
-    //  ****************************** 바 차트 함수 ******************************
-    const drawBarChart = () => {
-    const baseWidth = 400;
-    const baseHeight = 320;
-    const margin = { top: 20, right: 30, bottom: 20, left: 80 };
+  gradient
+    .append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "#6f7db1")
+    .attr("stop-opacity", 0.45);
 
-        d3.select("#bar-chart-target").selectAll("*").remove();
+  gradient
+    .append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "#6f7db1")
+    .attr("stop-opacity", 0);
 
-        const svg = d3.select("#bar-chart-target")
-            .append("svg")
-            .attr("viewBox", `0 0 ${baseWidth} ${baseHeight}`)
-            .style("width", "100%")
-            .style("height", "100%")
+  const area = d3
+    .area()
+    .x(d => x(d.month))
+    .y0(innerHeight)
+    .y1(d => y(d.value))
+    .curve(d3.curveMonotoneX);
 
-        
-    // 3. 척도(Scale) 설정
-    // Y축: 범주형 데이터(구역 이름)를 위아래로 배치
-    const yScale = d3.scaleBand()
-        .domain(barData.map(d => d.zone))
-        .range([margin.top, baseHeight - margin.bottom])
-        .padding(0.2); // 막대 사이의 간격
+  const line = d3
+    .line()
+    .x(d => x(d.month))
+    .y(d => y(d.value))
+    .curve(d3.curveMonotoneX);
 
-    // X축: 데이터 값(숫자)을 가로 너비로 변환
-    const xScale = d3.scaleLinear()
-        .domain([0, d3.max(barData, d => d.value)])
-        .range([margin.left, baseWidth - margin.right]);
+  g.append("path")
+    .datum(data)
+    .attr("fill", "url(#line-area-gradient)")
+    .attr("d", area);
 
-    // 4. 막대(Bar) 그리기
-    svg.selectAll(".bar")
-        .data(barData)
-        .enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("y", d => yScale(d.zone))       // 위아래 위치
-        .attr("x", margin.left)               // 시작점 (왼쪽 여백)
-        .attr("width", d => xScale(d.value) - margin.left) // 막대 너비
-        .attr("height", yScale.bandwidth())   // 막대 두께 (자동 계산)
-        .attr("fill", "#5c6bc0")              // 막대 색상
-        .attr("rx", 4);                       // 모서리 둥글게
+  g.append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "#5466a7")
+    .attr("stroke-width", 2.5)
+    .attr("d", line);
 
-    // 5. 축(Axis) 그리기
-    // 왼쪽 축: 구역 이름 표시
-    svg.append("g")
-        .attr("transform", `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(yScale).tickSize(0)) // 눈금선 제거
-        .select(".domain").remove(); // 축 선 제거 (깔끔하게)
+  g.selectAll(".dot")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("class", "dot")
+    .attr("cx", d => x(d.month))
+    .attr("cy", d => y(d.value))
+    .attr("r", 3)
+    .attr("fill", "#5466a7")
+    .attr("stroke", "#ffffff")
+    .attr("stroke-width", 1.5);
+}
 
-    // 6. 텍스트 라벨 추가 (막대 끝에 숫자 표시)
-    svg.selectAll(".label")
-        .data(barData)
-        .enter()
-        .append("text")
-        .attr("x", d => xScale(d.value) + 5)
-        .attr("y", d => yScale(d.zone) + yScale.bandwidth() / 2 + 5)
-        .text(d => d.value.toLocaleString())
-        .style("font-size", "12px")
-        .style("fill", "#666");
-    }
+// 가로 막대 차트 그리기
+function drawBarChart(config) {
+  const { root, selector, data, maxX } = config;
+  const container = root.querySelector(selector);
+  if (!container) return;
 
-// //  ****************************** ProgressBar 그리는 함수 ******************************
-    const drawProgressBar = (selector, percent, color) => {
-        const width = 300;
-        const height = 15; // 바의 높이
-        
-        // 기존에 그려진게 있다면 삭제 (중복 방지)
-        d3.select(selector).selectAll("*").remove();
+  container.innerHTML = "";
 
-        const svg = d3.select(selector)
-            .append("svg")
-            .attr("viewBox", `0 0 ${width} 40`) // 배지가 위로 튀어나오므로 높이 여유를 줌
-            .style("width", "100%")
-            .style("height", "auto")
-            .style("overflow", "visible");
+  const width = 620;
+  const height = 260;
+  const margin = { top: 14, right: 24, bottom: 28, left: 96 };
 
-        // 배경 회색 바
-        svg.append("rect")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("rx", height / 2)
-            .attr("fill", "#eee");
+  const { g, innerWidth, innerHeight } = createSvg({
+    container,
+    width,
+    height,
+    margin
+  });
 
-        // 실제 진행 바
-        const progress = svg.append("rect")
-            .attr("width", 0)
-            .attr("height", height)
-            .attr("rx", height / 2)
-            .attr("fill", color);
+  const y = d3
+    .scaleBand()
+    .domain(data.map(d => d.label))
+    .range([0, innerHeight])
+    .padding(0.26);
 
-        // 검은색 퍼센트 배지 그룹
-        const badge = svg.append("g")
-            .attr("transform", `translate(0, 0)`);
+  const x = d3
+    .scaleLinear()
+    .domain([0, maxX])
+    .nice()
+    .range([0, innerWidth]);
 
-        badge.append("rect")
-            .attr("width", 40)
-            .attr("height", 20)
-            .attr("rx", 10)
-            .attr("y", -25)
-            .attr("x", -20)
-            .attr("fill", "#333");
+  const xAxis = d3
+    .axisBottom(x)
+    .ticks(6)
+    .tickFormat(d => `${d}`);
 
-        badge.append("text")
-            .attr("text-anchor", "middle")
-            .attr("y", -11)
-            .style("fill", "white")
-            .style("font-size", "11px")
-            .text(`${percent}%`);
+  g.append("g")
+    .attr("class", "axis x-axis")
+    .attr("transform", `translate(0,${innerHeight})`)
+    .call(xAxis);
 
-        // 애니메이션 실행
-        const targetWidth = width * (percent / 100);
-        
-        progress.transition().duration(1000).attr("width", targetWidth);
-        badge.transition().duration(1000).attr("transform", `translate(${targetWidth}, 0)`);
-    };
+  g.selectAll(".x-axis path").attr("stroke", "#e5e7eb");
+  g.selectAll(".x-axis line").attr("stroke", "#e5e7eb");
 
+  g.append("g")
+    .attr("class", "axis y-axis")
+    .call(d3.axisLeft(y).tickSize(0))
+    .selectAll("text")
+    .attr("class", "bar-label")
+    .attr("dx", "-4");
 
-    
-    // 누적 절감액 카드 그리기
-    updateSavingCard('year', savingCardData.year, "#4caf50");
-    updateSavingCard('month', savingCardData.month, "#ff9800");
-    
-    // 차트 그리는 함수 호출
-    drawLineChart();
-    drawBarChart();
+  g.selectAll(".y-axis path").attr("stroke", "none");
 
-    // 주요 구역 상태 (하단부)
-    
-    // 탭 클릭 이벤트 (필터링 흉내내기)
-    document.querySelectorAll('.status-tabs .tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            // 모든 탭의 active 제거
-            document.querySelectorAll('.status-tabs .tab').forEach(t => t.classList.remove('active'));
-            // 클릭한 탭에 active 추가
-            tab.classList.add('active');
-            
-            // 실제 운영 시에는 여기서 데이터를 필터링하여 카드를 다시 그립니다.
-            console.log(tab.textContent.trim() + " 필터링 실행");
-        });
+  g.selectAll(".bar")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("y", d => y(d.label))
+    .attr("x", 0)
+    .attr("height", y.bandwidth())
+    .attr("width", d => x(d.value))
+    .attr("rx", y.bandwidth() / 2)
+    .attr("fill", "#3f67b1");
+}
+
+// d3 로딩 보장 유틸
+function ensureD3(callback) {
+  if (window.d3) {
+    callback();
+    return;
+  }
+  const existing = document.querySelector('script[data-d3-loaded]');
+  if (existing) {
+    existing.addEventListener('load', () => callback(), { once: true });
+    return;
+  }
+  const script = document.createElement('script');
+  script.src = 'https://d3js.org/d3.v7.min.js';
+  script.async = true;
+  script.dataset.d3Loaded = 'true';
+  script.onload = () => callback();
+  document.head.appendChild(script);
+}
+
+// 공통 초기화 함수 (root: document 또는 ThingsBoard 컨테이너)
+function initCharts(rootElement) {
+  drawLineChart({
+    root: rootElement,
+    selector: "#line-chart",
+    data: dashboardData.lineChart.points,
+    maxY: dashboardData.lineChart.maxY
+  });
+
+  drawBarChart({
+    root: rootElement,
+    selector: "#bar-chart",
+    data: dashboardData.barChart.items,
+    maxX: dashboardData.barChart.maxX
+  });
+}
+
+// ThingsBoard 위젯 환경: self.onInit 사용
+if (typeof self !== 'undefined') {
+  self.onInit = function () {
+    const root = (self.ctx && self.ctx.$container && self.ctx.$container[0]) || document;
+    ensureD3(() => initCharts(root));
+  };
+}
+
+// 일반 브라우저에서 단독 HTML로 사용할 때도 동작하도록 처리
+if (typeof window !== 'undefined' && !(typeof self !== 'undefined' && self.ctx)) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      ensureD3(() => initCharts(document));
     });
-
+  } else {
+    ensureD3(() => initCharts(document));
+  }
 }
