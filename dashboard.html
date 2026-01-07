@@ -51,7 +51,10 @@
                 <article class="card eco-card">
                     <h3 class="card-title">올해의 환경 기여도</h3>
                     <div class="eco-content">
-                        <div class="eco-icon">🌱</div>
+                        <div class="eco-icon">
+                            <img src="/api/images/public/aOPSWZJ0c0yCUd58M2et6MEnJTmWRhJN" class="icon-bg" alt="배경">
+                            <img src="/api/images/public/OVeFoDsFR9KQo9OV8bvddPaZyv26Olxf" class="icon-main" alt="지구">
+                        </div>
                         <div class="eco-text">
                             <p>지금까지 <strong>99 CO₂</strong> 이산화탄소 배출량을 감축했어요.</p>
                             <p class="highlight"><strong>10그루</strong> 소나무를 심은 것과 같아요.</p>
@@ -63,7 +66,7 @@
             <!-- 오른쪽 컬럼 -->
             <section class="section-right">
                 <article class="card usage-card">
-                    <div class="card-title arrow">이번 달 전력 사용량</div>
+                    <div class="card-title">이번 달 전력 사용량 &gt;</div>
                     <div class="usage-stats">
                         <div class="stat">
                             <span class="label">전력 사용량</span>
@@ -77,7 +80,7 @@
                 </article>
 
                 <article class="card ranking-card">
-                    <div class="card-title arrow">구역별 이번 달 전력 사용량 랭킹</div>
+                    <div class="card-title">구역별 이번 달 전력 사용량 랭킹 &gt;</div>
                     <div class="bar-chart" id="bar-chart"></div>
                 </article>
 
@@ -105,7 +108,7 @@
             <h3 class="section-main-title">주요 구역 상태</h3>
             <div class="status-board">
                 <div class="status-tabs">
-                    <div class="tab active danger"><span class="dot"></span> 점검 필요 <span class="count">2개 구역</span></div>
+                    <div class="tab active danger"><span class="dot"></span> 점검 필요 <span class="count" id="normal_font">2개 구역</span></div>
                     <div class="tab warning"><span class="dot"></span> 운전 활발 <span class="count">4개 구역</span></div>
                     <div class="tab success"><span class="dot"></span> 정상 <span class="count">14개 구역</span></div>
                     <div class="tab gray"><span class="dot"></span> 기타 <span class="count">2개 구역</span></div>
@@ -144,8 +147,5 @@
             </div>
         </section>
     </main>
-
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="./publishing02.js"></script>
 </body>
 </html>
