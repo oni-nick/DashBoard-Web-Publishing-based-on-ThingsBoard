@@ -1,0 +1,332 @@
+// 1. 변수 설정 (브랜드 컬러 및 공통 수치)
+$color-primary: #0f172a;
+$color-text-main: #111827;
+$color-text-sub: #4b5563;
+$color-text-muted: #7b808a;
+$color-border: #d7dce3;
+$color-bg-base: #f3f4f6;
+$color-danger: #e24334;
+$color-success: #36b24f;
+$color-warning: #f4a02c;
+
+$font-pretendard: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+// 2. 믹스인 (반복되는 스타일)
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@mixin card-base {
+  background: #fff;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+// 3. 스타일 시작
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: $font-pretendard;
+  background: $color-bg-base;
+  color: $color-text-main;
+  padding: 0;
+}
+
+.dashboard-wrapper {
+  margin: 0;
+  padding: 20px;
+}
+
+.page-header {
+  @include flex-between;
+  padding: 20px;
+
+  .title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.35px;
+    color: $color-primary;
+    margin: 0;
+  }
+
+  .timestamp {
+    font-size: 12px;
+    color: $color-text-muted;
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+  padding: 0;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// 카드 공통 및 내부 요소
+.card {
+  @include card-base;
+  padding: 14px 18px 16px;
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: $color-primary;
+    margin-bottom: 10px;
+    width: 100%;
+
+    &.with-divider {
+      position: relative;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+
+      &::after {
+        content: "";
+        position: absolute;
+        left: -18px;
+        right: -18px;
+        bottom: 0;
+        height: 1px;
+        background: #e5e7eb;
+      }
+    }
+  }
+}
+
+// 절전/에너지 카드
+.saving-card {
+  .saving-container {
+    display: flex;
+    gap: 16px;
+  }
+
+  .saving-item {
+    flex: 1;
+  }
+
+  .amount-val {
+    font-size: 24px;
+    font-weight: 700;
+    color: $color-primary;
+    margin-bottom: 10px;
+
+    small {
+      font-weight: 400;
+      font-size: 13px;
+      color: #6b7280;
+    }
+  }
+}
+
+// 게이지 바
+.gauge-bar {
+  position: relative;
+  height: 16px;
+  background: linear-gradient(to right, #e5e7eb 0, #e5e7eb 40%, #f9fafb 40%, #f9fafb 100%);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+
+  .fill {
+    display: block;
+    height: 100%;
+    background: $color-success;
+  }
+
+  &.orange .fill {
+    background: $color-warning;
+  }
+
+  .percent {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+// 차트 카드
+.chart-card {
+  .line-chart {
+    width: 100%;
+    height: 260px;
+
+    .axis text {
+      font-size: 11px;
+      fill: #80889a;
+    }
+
+    .grid {
+      line {
+        stroke: #e5e7eb;
+        stroke-dasharray: 3 3;
+      }
+      path { stroke: none; }
+    }
+  }
+  svg text { font-family: $font-pretendard; }
+}
+
+// 사용량 카드
+.usage-card {
+  .usage-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+
+    @media (max-width: 1100px) {
+      flex-direction: column;
+    }
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .label {
+      font-size: 12px;
+      color: $color-text-muted;
+    }
+
+    .value {
+      font-size: 18px;
+      font-weight: 700;
+      color: $color-primary;
+      &.strong { color: $color-primary; }
+    }
+  }
+}
+
+// 태그 시스템
+.tag {
+  display: inline-block;
+  min-width: 70px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-right: 6px;
+
+  &.blue { background: #e9f2ff; color: #2f66c1; }
+  &.indigo { background: #e9ebff; color: #4b5ac7; }
+  &.purple { background: #f0e9ff; color: #6e57c5; }
+}
+
+// 상태 보드 (Status Board)
+.status-board {
+  background: #fff;
+  border: 1px solid $color-border;
+
+  .status-tabs {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid $color-border;
+    padding: 0 12px;
+
+    .tab {
+      padding: 14px 14px;
+      font-size: 12px;
+      color: #8c92a3;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &.active {
+        color: $color-danger;
+        font-weight: 700;
+        border-bottom: 2px solid $color-danger;
+      }
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #d1d5db;
+    }
+
+    // 상태별 컬러 중첩
+    .danger .dot { background: $color-danger; }
+    .warning .dot { background: $color-warning; }
+    .success .dot { background: $color-success; }
+    .gray .dot { background: #9ca3af; }
+  }
+
+  .status-content {
+    padding: 10px 14px 12px;
+    background: #ffecec;
+  }
+}
+
+// 구역 카드 (Zone Card)
+.zone-card {
+  background: #fff;
+  border: 1px solid $color-border;
+  padding: 12px 14px;
+
+  .card-header {
+    @include flex-between;
+    margin: 0;
+
+    h4 {
+      font-size: 16px;
+      font-weight: 700;
+      color: $color-primary;
+      margin: 0;
+    }
+
+    .status-label {
+      font-size: 12px;
+      color: $color-danger;
+    }
+  }
+
+  .info-row {
+    @include flex-between;
+    font-size: 13px;
+    color: $color-text-sub;
+    margin-bottom: 4px;
+
+    .label { color: #8c92a3; }
+    .badge {
+      color: #3f67b1;
+      border: 1px solid #3f67b1;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-weight: 700;
+    }
+  }
+}
+
+// 레이아웃 섹션 (좌/우)
+.section-left, .section-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+// 기타 유틸리티
+.footnote { font-size: 12px; color: $color-text-muted; }
+#normal_font { color: black; }
