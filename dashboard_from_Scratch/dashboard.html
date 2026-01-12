@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="./dashboard.css" />
+		<title>Document</title>
+	</head>
+	<body>
+		<div class="page-header">
+			<tp-text class="tp-text title-2 bold">종합 현황</tp-text>
+			<tp-text class="tp-text footnote regular">2025-06-10 (화) 04:55:32 PM 기준</tp-text>
+		</div>
+		<div class="page-layout">
+			<div class="left-layout">
+				<div class="card cumulative-savings">
+					<div class="card-header">
+						<tp-text class="tp-text headline bold">누적절감액</tp-text>
+					</div>
+					<div class="card-content"></div>
+				</div>
+				<div class="card env-contribution">
+					<div class="card-header">
+						<tp-text class="tp-text headline bold">올해의 환경기여도</tp-text>
+					</div>
+					<div class="card-content"></div>
+				</div>
+			</div>
+			<div class="right-layout">
+				<div class="card month-power">
+					<div class="card-header">
+						<tp-text class="tp-text headline bold">이번 달 전력 사용량</tp-text>
+					</div>
+					<div class="card-content">
+						<div class="usage">
+							<tp-text class="tp-text footnote regular">전력 사용량</tp-text>
+							<tp-text class="tp-text title-2 regular">45.51 kWh</tp-text>
+						</div>
+						<div class="vertical-divider"></div>
+						<div class="charge">
+							<tp-text class="tp-text footnote regular">예상 요금</tp-text>
+							<tp-text class="tp-text title-2 regular">9,470원</tp-text>
+						</div>
+					</div>
+				</div>
+				<div class="card power-ranking">
+					<div class="card-header">
+						<tp-text class="tp-text headline bold">구역별 이번 달 전력 사용량 랭킹</tp-text>
+					</div>
+					<div class="card-content"></div>
+				</div>
+				<div class="card summary">
+					<div class="card-header">
+						<tp-text class="tp-text headline bold">현황 요약</tp-text>
+					</div>
+					<div class="card-content">
+						<div class="status-box">
+							<tp-text class="tp-text footnote reqular">가동 현황</tp-text>
+							<div class="status">
+								<div class="status-item">
+									<tp-text class="tp-text title-2 bold">17/20</tp-text>
+									<tp-text class="tp-text subheadline reqular">(통신이상:1)</tp-text>
+								</div>
+							</div>
+						</div>
+						<div class="vertical-divider"></div>
+						<div class="mode-box">
+							<tp-text class="tp-text footnote reqular">제어 모드</tp-text>
+							<div class="mode">
+								<div class="mode-item">
+									<div class="badge blue">
+										<tp-text class="tp-text caption-2 bold">쾌적 절감</tp-text>
+									</div>
+									<tp-text class="tp-text footnote reqular">4개소(20%)</tp-text>
+								</div>
+								<div class="mode-item">
+									<div class="badge purple">
+										<tp-text class="tp-text caption-2 bold">목표 절감</tp-text>
+									</div>
+									<tp-text class="tp-text footnote reqular">14개소(20%)</tp-text>
+								</div>
+								<div class="mode-item">
+									<div class="badge violet">
+										<tp-text class="tp-text caption-2 bold">수동 제어</tp-text>
+									</div>
+									<tp-text class="tp-text footnote reqular">2개소(10%)</tp-text>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="bottom-layout ket-district-status">
+				<div class="card">
+					<div class="card-header">
+						<tp-text class="tp-text headline bold">현황 요약</tp-text>
+					</div>
+					<div class="card-content"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

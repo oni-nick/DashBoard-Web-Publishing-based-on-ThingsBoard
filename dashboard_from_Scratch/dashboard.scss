@@ -1,0 +1,170 @@
+@import "global_styles";
+$color-border: #D1D5DB;
+$color-bg: #F8F9FA;
+$color-white: #FFFFFF;
+$badge-blue-bg: #E6F2FF;
+$badge-blue-text: #007AFF;
+$badge-purple-bg: #EEEEFB;
+$badge-purple-text: #5856D7;
+$badge-violet-bg: #F7EEFC;
+$badge-violet-text: #3D1D4E;
+$gap-default: 20px;
+
+@mixin card-style($padding: 20px) {
+    background-color: $color-white;
+    border-radius: 4px;
+    border: 1px solid $color-border;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+
+    .card-header {
+        border-bottom: 1px solid $color-border;
+        padding: 16px 20px;
+        flex-shrink: 0; // header가 축소되지 않도록 설정
+    }
+    .card-content {
+        padding: $padding;
+        flex: 1; // 남은 공간을 content가 차지하도록 설정 (중요)
+    }
+}
+html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background-color: $color-bg;
+
+    .page-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+    }
+    .page-layout {
+        gap: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 2.2fr 1fr;
+        min-height: 100vh;
+        width:100%;
+        padding: 0 20px 20px 20px;
+        grid-template-areas:
+            "left-layout right-layout"
+            "bottom-layout bottom-layout";
+        .left-layout{
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            grid-area: left-layout;
+            .card {
+                @include card-style;
+                &:nth-child(1){ flex: 1.5; }
+                &:nth-child(2){ flex: 1; }
+            }
+        }
+
+        .right-layout{
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            grid-area: right-layout;
+            .card {
+                @include card-style;
+                &:nth-child(1){ 
+                    @include card-style(20px 24px);
+                    .card-content {
+                        flex: 1; 
+                        display: flex;
+                        justify-content: space-around;
+                        // 그리드 쓰는게 더 나을듯. 나중에 바꿔보던지.
+                        .vertical-divider {
+                            border-left: 1px solid $color-border;
+                            align-self: stretch;
+                        }
+                    }
+                }
+                &:nth-child(2){ flex: 3; }
+                &:nth-child(3){ 
+                    flex: 1.5; 
+                    @include card-style(20px 24px);
+                    .card-content{
+                        display: flex;
+                        justify-content: flex-start;
+                        gap: 40px;
+                        align-items: center;
+                        .vertical-divider {
+                            border-left: 1px solid $color-border;
+                            align-self: stretch;
+                        }
+                        .status-box{
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: flex-start;
+                            gap: 18px;
+                            height: 100%;
+                          .status{
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                            .status-item{
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: flex-start;
+                                align-items: flex-start;
+                                gap: 8px;
+                            }
+                          }
+                        }
+                        .mode-box{
+                            display: flex;
+                            flex-direction: column;
+                            gap: 8px;
+                            justify-content: flex-start;
+                            height: 100%;
+                          .mode{
+                              display: flex;
+                              flex-direction: column;
+                              justify-content: space-evenly;
+                              gap: 8px;
+                              .mode-item{
+                                  display:inline-flex;
+                                  align-items: center;
+                                  gap: 8px;
+                                  .badge{
+                                      display: inline-flex;
+                                      align-items: center;
+                                      justify-content: center;
+                                      padding: 4px 8px;    
+                                      border-radius: 4px;
+                                      &.blue{
+                                          background-color: $badge-blue-bg;
+                                          tp-text {color: $badge-blue-text;}
+                                      }
+                                      &.purple{
+                                          background-color: $badge-purple-bg;
+                                          tp-text {color: $badge-purple-text;}
+                                      }
+                                      &.violet{
+                                          background-color: $badge-violet-bg;
+                                          tp-text {color: $badge-violet-text;}
+                                      }
+                                  }
+                              }
+                            }
+                          }
+                    }
+
+                }
+            }
+        }
+
+        .bottom-layout{
+            grid-area: bottom-layout;
+            .card {
+                @include card-style;
+                height: 100%;
+            }
+        }
+    }
+}
