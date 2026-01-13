@@ -1,170 +1,443 @@
-@import "global_styles";
-$color-border: #D1D5DB;
-$color-bg: #F8F9FA;
-$color-white: #FFFFFF;
-$badge-blue-bg: #E6F2FF;
-$badge-blue-text: #007AFF;
-$badge-purple-bg: #EEEEFB;
-$badge-purple-text: #5856D7;
-$badge-violet-bg: #F7EEFC;
-$badge-violet-text: #3D1D4E;
+@use "global_styles" as *;
+// @use "gauge-container";
+$color-border: #d1d5db;
+$color-bg: #f8f9fa;
+$color-white: #ffffff;
+$badge-blue-bg: #e6f2ff;
+$badge-blue-text: #007aff;
+$badge-purple-bg: #eeeefb;
+$badge-purple-text: #5856d7;
+$badge-violet-bg: #f7eefc;
+$badge-violet-text: #3d1d4e;
 $gap-default: 20px;
 
 @mixin card-style($padding: 20px) {
-    background-color: $color-white;
-    border-radius: 4px;
-    border: 1px solid $color-border;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
+	background-color: $color-white;
+	border-radius: 4px;
+	border: 1px solid $color-border;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
 
-    .card-header {
-        border-bottom: 1px solid $color-border;
-        padding: 16px 20px;
-        flex-shrink: 0; // header가 축소되지 않도록 설정
-    }
-    .card-content {
-        padding: $padding;
-        flex: 1; // 남은 공간을 content가 차지하도록 설정 (중요)
-    }
+	.card-header {
+		border-bottom: 1px solid $color-border;
+		padding: 16px 20px;
+		flex-shrink: 0; // header가 축소되지 않도록 설정
+	}
+	.card-content {
+		padding: $padding;
+		flex: 1; // 남은 공간을 content가 차지하도록 설정 (중요)
+	}
 }
-html, body{
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-    background-color: $color-bg;
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	overflow: hidden;
+	background-color: $color-bg;
 
-    .page-header{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px;
-    }
-    .page-layout {
-        gap: 20px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 2.2fr 1fr;
-        min-height: 100vh;
-        width:100%;
-        padding: 0 20px 20px 20px;
-        grid-template-areas:
-            "left-layout right-layout"
-            "bottom-layout bottom-layout";
-        .left-layout{
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            grid-area: left-layout;
-            .card {
-                @include card-style;
-                &:nth-child(1){ flex: 1.5; }
-                &:nth-child(2){ flex: 1; }
-            }
-        }
+	.page-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px;
+	}
+	.page-layout {
+		gap: 20px;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		grid-template-rows: 2.2fr 1fr;
+		min-height: 100vh;
+		width: 100%;
+		padding: 0 20px 20px 20px;
+		grid-template-areas:
+			"left-layout right-layout"
+			"bottom-layout bottom-layout";
+		.left-layout {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+			grid-area: left-layout;
+			.card {
+				@include card-style;
+				&:nth-child(1) {
+					flex: 1.5;
+					.card-content {
+						display: flex;
+						flex-direction: column;
+						justify-content: center;
+						align-items: center;
+						padding: 20px;
+						gap: 20px;
+						.usage-cards {
+							display: flex;
+							justify-content: space-between;
+							width: 100%;
+							gap: 20px;
+							.year-card {
+								flex: 1;
+								display: flex;
+								flex-direction: column;
+								gap: 16px;
+								.content .saving-info-row tp-text {
+									display: inline-flex;
+								}
+								.content {
+									display: flex;
+									flex-direction: column;
+									gap: 20px;
+									padding: 20px;
+									background-color: #fafbfb;
+									.gauge-container tp-text {
+										margin-top: 13px;
+									}
+									.gauge-container {
+										position: relative;
+										padding-top: 30px;
+										margin: 0px;
+										min-height: 65px;
+										flex-shrink: 0;
+										.percent-badge {
+											position: absolute;
+											left: 0px;
+											top: 0px;
+											transform: translateX(-50%);
+											background-color: #000;
+											color: #fff;
+											padding: 2px 8px;
+											border-radius: 12px;
+											font-size: 11px;
+											font-weight: bold;
+											white-space: nowrap;
+											z-index: 10;
+											&::after {
+												// 아래쪽 삼각형 꼬리
+												content: "";
+												position: absolute;
+												bottom: -4px;
+												left: 50%;
+												transform: translateX(-50%);
+												border-left: 4px solid transparent;
+												border-right: 4px solid transparent;
+												border-top: 5px solid #1a1c1e;
+											}
+										}
+										.gauge-wrapper {
+											display: flex;
+											align-items: center;
+											height: 24px; // 게이지 두께
+											gap: 0; // 구분선과 밀착시키기 위해 0 설정
 
-        .right-layout{
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            grid-area: right-layout;
-            .card {
-                @include card-style;
-                &:nth-child(1){ 
-                    @include card-style(20px 24px);
-                    .card-content {
-                        flex: 1; 
-                        display: flex;
-                        justify-content: space-around;
-                        // 그리드 쓰는게 더 나을듯. 나중에 바꿔보던지.
-                        .vertical-divider {
-                            border-left: 1px solid $color-border;
-                            align-self: stretch;
-                        }
-                    }
-                }
-                &:nth-child(2){ flex: 3; }
-                &:nth-child(3){ 
-                    flex: 1.5; 
-                    @include card-style(20px 24px);
-                    .card-content{
-                        display: flex;
-                        justify-content: flex-start;
-                        gap: 40px;
-                        align-items: center;
-                        .vertical-divider {
-                            border-left: 1px solid $color-border;
-                            align-self: stretch;
-                        }
-                        .status-box{
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: flex-start;
-                            gap: 18px;
-                            height: 100%;
-                          .status{
-                            display: flex;
-                            flex-direction: column;
-                            gap: 12px;
-                            .status-item{
-                                display: flex;
-                                flex-direction: column;
-                                justify-content: flex-start;
-                                align-items: flex-start;
-                                gap: 8px;
-                            }
-                          }
-                        }
-                        .mode-box{
-                            display: flex;
-                            flex-direction: column;
-                            gap: 8px;
-                            justify-content: flex-start;
-                            height: 100%;
-                          .mode{
-                              display: flex;
-                              flex-direction: column;
-                              justify-content: space-evenly;
-                              gap: 8px;
-                              .mode-item{
-                                  display:inline-flex;
-                                  align-items: center;
-                                  gap: 8px;
-                                  .badge{
-                                      display: inline-flex;
-                                      align-items: center;
-                                      justify-content: center;
-                                      padding: 4px 8px;    
-                                      border-radius: 4px;
-                                      &.blue{
-                                          background-color: $badge-blue-bg;
-                                          tp-text {color: $badge-blue-text;}
-                                      }
-                                      &.purple{
-                                          background-color: $badge-purple-bg;
-                                          tp-text {color: $badge-purple-text;}
-                                      }
-                                      &.violet{
-                                          background-color: $badge-violet-bg;
-                                          tp-text {color: $badge-violet-text;}
-                                      }
-                                  }
-                              }
-                            }
-                          }
-                    }
+											.gauge-segment {
+												height: 100%;
+												border-radius: 4px; // 피그마 디자인에 맞춘 곡률
 
-                }
-            }
-        }
+												&.attained {
+													background-color: #60c671; // 진한 초록
+												}
+												&.remaining {
+													background-color: #94d3aa; // 연한 초록
+												}
+											}
 
-        .bottom-layout{
-            grid-area: bottom-layout;
-            .card {
-                @include card-style;
-                height: 100%;
-            }
-        }
-    }
+											.gauge-divider {
+												width: 4px; // 구분선 두께
+												height: 100%; // 게이지와 동일한 높이
+												background-color: #1a1c1e; // 검정색 수직 막대
+												margin: 0 4px; // 구분선 양옆에 미세한 간격 (디자인에 따라 조절)
+												z-index: 1;
+											}
+										}
+									}
+								}
+							}
+							.month-card {
+								flex: 1;
+								display: flex;
+								flex-direction: column;
+								gap: 16px;
+								.content .saving-info-row tp-text {
+									display: inline-flex;
+								}
+								.content {
+									display: flex;
+									flex-direction: column;
+									gap: 20px;
+									padding: 20px;
+									background-color: #fafbfb;
+									// .gauge-container : orange
+									.gauge-container tp-text {
+										margin-top: 13px;
+									}
+									.gauge-container {
+										position: relative;
+										padding-top: 30px;
+										margin: 0px;
+										min-height: 65px;
+										flex-shrink: 0;
+										.percent-badge {
+											position: absolute;
+											left: 0px;
+											top: 0px;
+											transform: translateX(-50%);
+											background-color: #000;
+											color: #fff;
+											padding: 2px 8px;
+											border-radius: 12px;
+											font-size: 11px;
+											font-weight: bold;
+											white-space: nowrap;
+											z-index: 10;
+											&::after {
+												// 아래쪽 삼각형 꼬리
+												content: "";
+												position: absolute;
+												bottom: -4px;
+												left: 50%;
+												transform: translateX(-50%);
+												border-left: 4px solid transparent;
+												border-right: 4px solid transparent;
+												border-top: 5px solid #1a1c1e;
+											}
+										}
+										.gauge-wrapper {
+											display: flex;
+											align-items: center;
+											height: 24px; // 게이지 두께
+											gap: 0; // 구분선과 밀착시키기 위해 0 설정
+
+											.gauge-segment {
+												height: 100%;
+												border-radius: 4px; // 피그마 디자인에 맞춘 곡률
+
+												&.attained {
+													background-color: #ff9500; // 진한 초록
+												}
+												&.remaining {
+													background-color: #ffdeb0; // 연한 초록
+												}
+											}
+
+											.gauge-divider {
+												width: 4px; // 구분선 두께
+												height: 100%; // 게이지와 동일한 높이
+												background-color: #1a1c1e; // 검정색 수직 막대
+												margin: 0 4px; // 구분선 양옆에 미세한 간격 (디자인에 따라 조절)
+												z-index: 1;
+											}
+										}
+
+										// &.green {
+										// 	@include gauge-theme(#60c671, #94d3aa);
+										// }
+										// &.orange {
+										// 	@include gauge-theme(#f5a623, #f8d3a3);
+										// }
+									}
+								}
+							}
+						}
+						#line-chart {
+							width: 100%;
+							height: 100%;
+						}
+					}
+				}
+				&:nth-child(2) {
+					flex: 1;
+				}
+			}
+		}
+
+		.right-layout {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+			grid-area: right-layout;
+			.card {
+				@include card-style;
+				&:nth-child(1) {
+					@include card-style(20px 24px);
+					.card-content {
+						flex: 1;
+						display: flex;
+						justify-content: space-around;
+						// 그리드 쓰는게 더 나을듯. 나중에 바꿔보던지.
+						.vertical-divider {
+							border-left: 1px solid $color-border;
+							align-self: stretch;
+						}
+					}
+				}
+				&:nth-child(2) {
+					flex: 3;
+					.card-content {
+						width: 100%;
+						height: 100%;
+					}
+				}
+				&:nth-child(3) {
+					flex: 1.5;
+					@include card-style(20px 24px);
+					.card-content {
+						display: flex;
+						justify-content: flex-start;
+						gap: 40px;
+						align-items: center;
+						.vertical-divider {
+							border-left: 1px solid $color-border;
+							align-self: stretch;
+						}
+						.status-box {
+							display: flex;
+							flex-direction: column;
+							justify-content: flex-start;
+							gap: 18px;
+							height: 100%;
+							.status {
+								display: flex;
+								flex-direction: column;
+								gap: 12px;
+								.status-item {
+									display: flex;
+									flex-direction: column;
+									justify-content: flex-start;
+									align-items: flex-start;
+									gap: 8px;
+								}
+							}
+						}
+						.mode-box {
+							display: flex;
+							flex-direction: column;
+							gap: 8px;
+							justify-content: flex-start;
+							height: 100%;
+							.mode {
+								display: flex;
+								flex-direction: column;
+								justify-content: space-evenly;
+								gap: 8px;
+								.mode-item {
+									display: inline-flex;
+									align-items: center;
+									gap: 8px;
+									.badge {
+										display: inline-flex;
+										align-items: center;
+										justify-content: center;
+										padding: 4px 8px;
+										border-radius: 4px;
+										&.blue {
+											background-color: $badge-blue-bg;
+											tp-text {
+												color: $badge-blue-text;
+											}
+										}
+										&.purple {
+											background-color: $badge-purple-bg;
+											tp-text {
+												color: $badge-purple-text;
+											}
+										}
+										&.violet {
+											background-color: $badge-violet-bg;
+											tp-text {
+												color: $badge-violet-text;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		.bottom-layout {
+			grid-area: bottom-layout;
+			.card {
+				@include card-style;
+				height: 100%;
+				.card-header .key-district-header {
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					.weather-text {
+						display: flex;
+						gap: 12px;
+					}
+					.weather-text tp-text {
+						display: inline-block;
+					}
+				}
+				.card-content {
+					display: flex;
+					flex-direction: column;
+					.status-tabs {
+						display: flex;
+						justify-content: space-evenly;
+						.status-tab {
+							gap: 12px;
+							flex: 1;
+							border: 1px solid $color-border;
+						}
+						tp-text {
+							display: inline-block;
+						}
+					}
+					.district-card-list {
+						background-color: var(--tp-color-red-light);
+						display: flex;
+						justify-content: flex-start;
+						padding: 8px;
+						gap: 20px;
+
+						.district-card {
+							background-color: $color-white;
+							display: flex;
+							flex-direction: column;
+							justify-content: flex-start;
+							border: 1px solid $color-border;
+							gap: 16px;
+							padding: 20px 24px;
+							min-width: 339.5px;
+
+							.dist-card-header {
+								display: inline-flex;
+								gap: 40px;
+								justify-content: space-between;
+							}
+							.dist-card-body {
+								display: flex;
+								flex-direction: column;
+								gap: 8px;
+								.info-row {
+									display: flex;
+									justify-content: space-between;
+									align-items: center;
+									width: 100%;
+								}
+								.dist-card-color {
+									display: inline-flex;
+									align-items: center;
+									justify-content: center;
+									padding: 4px 8px;
+									border-radius: 4px;
+									&.purple {
+										background-color: $badge-purple-bg;
+										tp-text {
+											color: $badge-purple-text;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
