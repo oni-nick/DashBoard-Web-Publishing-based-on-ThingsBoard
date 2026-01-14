@@ -9,8 +9,8 @@ const dashboardData = {
       { month: "4월", value: 22000 },
       { month: "5월", value: 19000 },
       { month: "6월", value: 23000 },
-      { month: "7월", value: 26000 },
-      { month: "8월", value: 32000 },
+      { month: "7월", value: 21000 },
+      { month: "8월", value: 28000 },
       { month: "9월", value: 42000 },
       { month: "10월", value: 47000 },
       { month: "11월", value: 43000 },
@@ -20,14 +20,14 @@ const dashboardData = {
   barChart: {
     maxX: 110,
     items: [
-      { label: "사무실 1", value: 90 },
-      { label: "사무실 2", value: 82 },
-      { label: "사무실 3", value: 70 },
-      { label: "사무실 4", value: 58 },
-      { label: "부품 창고", value: 46 },
-      { label: "조립 라인 1", value: 22 },
-      { label: "조립 라인 2", value: 18 },
-      { label: "휴게실", value: 18 }
+      { label: "사무실 1", value: 77 },
+      { label: "사무실 2", value: 68 },
+      { label: "사무실 3", value: 49 },
+      { label: "사무실 4", value: 44 },
+      { label: "부품 창고", value: 26 },
+      { label: "조립 라인 1", value: 15 },
+      { label: "조립 라인 2", value: 13 },
+      { label: "휴게실", value: 12 }
     ]
   }
 };
@@ -41,7 +41,9 @@ function createSvg({ container, width, height, margin }) {
     .select(container)
     .append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`)
-    .attr("preserveAspectRatio", "xMidYMid meet");
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .style("width", "100%")
+    .style("height", "100%");
 
   const g = svg
     .append("g")
@@ -73,38 +75,42 @@ function drawLineChart(config) {
     .scalePoint()
     .domain(data.map(d => d.month))
     .range([0, innerWidth])
-    .padding(0.5);
+    .padding(0.45);
 
   const y = d3
     .scaleLinear()
     .domain([0, maxY])
-    .nice()
+    // .nice()
     .range([innerHeight, 0]);
 
-  // Y축 그리드
+  // Y축 (가로선 제거, 숫자 라벨만 유지)
   const yAxis = d3
     .axisLeft(y)
     .ticks(5)
-    .tickSize(-innerWidth)
+    .tickSize(0) // 가로 실선 제거
+    .tickPadding(8)
     .tickFormat(d3.format(","));
 
   g.append("g")
-    .attr("class", "grid")
+    .attr("class", "y-axis")
     .call(yAxis)
     .select(".domain")
     .remove();
 
-  // X축
-  const xAxis = d3.axisBottom(x);
+  // X축 (세로 실선 유지)
+  const xAxis = d3.axisBottom(x)
+    .tickSize(-innerHeight); // 세로 실선 생성
 
   g.append("g")
     .attr("class", "axis x-axis")
     .attr("transform", `translate(0,${innerHeight})`)
     .call(xAxis)
     .select(".domain")
-    .attr("stroke", "none");
+    .remove();
 
-  g.selectAll(".x-axis line").attr("stroke", "none");
+  // 세로 실선 색상 설정
+  g.selectAll(".x-axis line")
+    .attr("stroke", "#C7C7CC");
 
   // 영역 그라데이션 정의
   const defs = g.append("defs");
@@ -133,13 +139,13 @@ function drawLineChart(config) {
     .x(d => x(d.month))
     .y0(innerHeight)
     .y1(d => y(d.value))
-    .curve(d3.curveMonotoneX);
+    .curve(d3.curveLinear);
 
   const line = d3
     .line()
     .x(d => x(d.month))
     .y(d => y(d.value))
-    .curve(d3.curveMonotoneX);
+    .curve(d3.curveLinear);
 
   g.append("path")
     .datum(data)
@@ -162,8 +168,7 @@ function drawLineChart(config) {
     .attr("cy", d => y(d.value))
     .attr("r", 3)
     .attr("fill", "#5466a7")
-    .attr("stroke", "#ffffff")
-    .attr("stroke-width", 1.5);
+    .attr("stroke", "none");
 }
 
 // 가로 막대 차트 그리기
@@ -176,7 +181,7 @@ function drawBarChart(config) {
 
   const width = 620;
   const height = 260;
-  const margin = { top: 14, right: 24, bottom: 28, left: 96 };
+  const margin = { top: 14, right: 24, bottom: 20, left: 96 };
 
   const { g, innerWidth, innerHeight } = createSvg({
     container,
@@ -189,27 +194,33 @@ function drawBarChart(config) {
     .scaleBand()
     .domain(data.map(d => d.label))
     .range([0, innerHeight])
-    .padding(0.26);
+    .padding(0.45);
 
   const x = d3
     .scaleLinear()
     .domain([0, maxX])
-    .nice()
+    // .nice()
     .range([0, innerWidth]);
 
+  // X축 (세로 실선 유지, 가로 바닥선은 유지)
   const xAxis = d3
     .axisBottom(x)
-    .ticks(6)
+    .ticks(11)
+    .tickSize(-innerHeight)
     .tickFormat(d => `${d}`);
 
   g.append("g")
     .attr("class", "axis x-axis")
     .attr("transform", `translate(0,${innerHeight})`)
-    .call(xAxis);
+    .call(xAxis)
+    .select(".domain")
+    .attr("stroke", "#e5e7eb");
 
-  g.selectAll(".x-axis path").attr("stroke", "#e5e7eb");
-  g.selectAll(".x-axis line").attr("stroke", "#e5e7eb");
+  // 세로 실선 색상 설정
+  g.selectAll(".x-axis line")
+    .attr("stroke", "#C7C7CC");
 
+  // Y축 (라벨만 표시)
   g.append("g")
     .attr("class", "axis y-axis")
     .call(d3.axisLeft(y).tickSize(0))
@@ -228,14 +239,13 @@ function drawBarChart(config) {
     .attr("x", 0)
     .attr("height", y.bandwidth())
     .attr("width", d => x(d.value))
-    .attr("rx", y.bandwidth() / 2)
     .attr("fill", "#3f67b1");
 }
 
 // d3 로딩 보장 유틸
 function ensureD3(callback) {
   if (window.d3) {
-    callback();
+    callback(); 
     return;
   }
   const existing = document.querySelector('script[data-d3-loaded]');
