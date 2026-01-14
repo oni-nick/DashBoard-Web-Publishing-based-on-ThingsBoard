@@ -9,8 +9,8 @@ const dashboardData = {
       { month: "4월", value: 22000 },
       { month: "5월", value: 19000 },
       { month: "6월", value: 23000 },
-      { month: "7월", value: 26000 },
-      { month: "8월", value: 32000 },
+      { month: "7월", value: 21000 },
+      { month: "8월", value: 28000 },
       { month: "9월", value: 42000 },
       { month: "10월", value: 47000 },
       { month: "11월", value: 43000 },
@@ -20,14 +20,14 @@ const dashboardData = {
   barChart: {
     maxX: 110,
     items: [
-      { label: "사무실 1", value: 90 },
-      { label: "사무실 2", value: 82 },
-      { label: "사무실 3", value: 70 },
-      { label: "사무실 4", value: 58 },
-      { label: "부품 창고", value: 46 },
-      { label: "조립 라인 1", value: 22 },
-      { label: "조립 라인 2", value: 18 },
-      { label: "휴게실", value: 18 }
+      { label: "사무실 1", value: 77 },
+      { label: "사무실 2", value: 68 },
+      { label: "사무실 3", value: 49 },
+      { label: "사무실 4", value: 44 },
+      { label: "부품 창고", value: 26 },
+      { label: "조립 라인 1", value: 15 },
+      { label: "조립 라인 2", value: 13 },
+      { label: "휴게실", value: 12 }
     ]
   }
 };
@@ -75,12 +75,12 @@ function drawLineChart(config) {
     .scalePoint()
     .domain(data.map(d => d.month))
     .range([0, innerWidth])
-    .padding(0.5);
+    .padding(0.45);
 
   const y = d3
     .scaleLinear()
     .domain([0, maxY])
-    .nice()
+    // .nice()
     .range([innerHeight, 0]);
 
   // Y축 (가로선 제거, 숫자 라벨만 유지)
@@ -168,8 +168,7 @@ function drawLineChart(config) {
     .attr("cy", d => y(d.value))
     .attr("r", 3)
     .attr("fill", "#5466a7")
-    .attr("stroke", "#ffffff")
-    .attr("stroke-width", 1.5);
+    .attr("stroke", "none");
 }
 
 // 가로 막대 차트 그리기
@@ -182,7 +181,7 @@ function drawBarChart(config) {
 
   const width = 620;
   const height = 260;
-  const margin = { top: 14, right: 24, bottom: 28, left: 96 };
+  const margin = { top: 14, right: 24, bottom: 20, left: 96 };
 
   const { g, innerWidth, innerHeight } = createSvg({
     container,
@@ -195,18 +194,18 @@ function drawBarChart(config) {
     .scaleBand()
     .domain(data.map(d => d.label))
     .range([0, innerHeight])
-    .padding(0.26);
+    .padding(0.45);
 
   const x = d3
     .scaleLinear()
     .domain([0, maxX])
-    .nice()
+    // .nice()
     .range([0, innerWidth]);
 
   // X축 (세로 실선 유지, 가로 바닥선은 유지)
   const xAxis = d3
     .axisBottom(x)
-    .ticks(6)
+    .ticks(11)
     .tickSize(-innerHeight)
     .tickFormat(d => `${d}`);
 
@@ -246,7 +245,7 @@ function drawBarChart(config) {
 // d3 로딩 보장 유틸
 function ensureD3(callback) {
   if (window.d3) {
-    callback();
+    callback(); 
     return;
   }
   const existing = document.querySelector('script[data-d3-loaded]');
@@ -276,12 +275,12 @@ function initCharts(rootElement) {
     selector: "#bar-chart",
     data: dashboardData.barChart.items,
     maxX: dashboardData.barChart.maxX
-	});
+  });
 }
 
 // ThingsBoard 위젯 환경: self.onInit 사용
 if (typeof self !== 'undefined') {
-    self.onInit = function () {
+  self.onInit = function () {
     const root = (self.ctx && self.ctx.$container && self.ctx.$container[0]) || document;
     ensureD3(() => initCharts(root));
   };
