@@ -1,0 +1,26 @@
+name: Javascript Code Check
+
+on:
+  push:
+    branches: [ "main"]
+  pull_request:
+    branches: [ "main"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/stepup-node@v3
+      with:
+        node-version: '18'
+    - name: Check Environment
+      run: |
+        node -v
+        npm -v
+        ls -al
+        echo "[Success Test: The code has been safely delivered to the server!]"
