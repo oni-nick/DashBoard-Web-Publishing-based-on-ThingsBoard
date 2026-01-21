@@ -1,16 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="stylesheet" href="./dashboard.css" />
-		<script src="./dashboard.js" defer></script>
-		<title>Document</title>
+		<title>Energy Saving Dashboard</title>
 	</head>
 	<body>
 		<div class="page-header">
 			<tp-text class="tp-text title-2 bold">종합 현황</tp-text>
-			<tp-text class="tp-text footnote regular">2025-06-10 (화) 04:55:32 PM 기준</tp-text>
+			<tp-text id="current-date" class="tp-text footnote regular">-</tp-text>
 		</div>
 		<div class="page-layout">
 			<div class="left-layout">
@@ -27,22 +26,22 @@
 								<div class="content">
 									<div class="text-content">
 										<div class="saving-info-row">
-											<tp-text class="tp-text callout bold">12340.99 kWh</tp-text>
+											<tp-text id="year-saved-power" class="tp-text callout bold">- kWh</tp-text>
 											<tp-text class="tp-text footnote regular">만큼 덜 사용해서</tp-text>
 										</div>
 										<div class="saving-info-row">
-											<tp-text class="tp-text title-1 bold">1,099,999원</tp-text>
+											<tp-text id="year-saved-cost" class="tp-text title-1 bold">-원</tp-text>
 											<tp-text class="tp-text footnote regular">을 절약했어요</tp-text>
 										</div>
 									</div>
 									<div class="gauge-container">
-										<div class="percent-badge" style="left: 66%">23%</div>
+										<div id="year-gauge-badge" class="percent-badge" style="left: 0%">0%</div>
 										<div class="gauge-wrapper">
-											<div class="gauge-segment attained" style="flex: 66"></div>
+											<div id="year-gauge-bar" class="gauge-segment attained" style="flex: 0"></div>
 											<div class="gauge-divider"></div>
-											<div class="gauge-segment remaining" style="flex: 34"></div>
+											<div class="gauge-segment remaining" style="flex: 100"></div>
 										</div>
-										<tp-text class="tp-text footnote bold">예상 사용량 대비 23%를 달성했어요!</tp-text>
+										<tp-text id="year-gauge-desc" class="tp-text footnote bold">데이터 수신 중...</tp-text>
 									</div>
 								</div>
 							</div>
@@ -53,22 +52,22 @@
 								<div class="content">
 									<div class="text-content">
 										<div class="saving-info-row">
-											<tp-text class="tp-text callout bold">940.99 kWh</tp-text>
+											<tp-text id="month-saved-power" class="tp-text callout bold">- kWh</tp-text>
 											<tp-text class="tp-text footnote regular">만큼 덜 사용해서</tp-text>
 										</div>
 										<div class="saving-info-row">
-											<tp-text class="tp-text title-1 bold">29,999원</tp-text>
+											<tp-text id="month-saved-cost" class="tp-text title-1 bold">-원</tp-text>
 											<tp-text class="tp-text footnote regular">을 절약했어요</tp-text>
 										</div>
 									</div>
 									<div class="gauge-container">
-										<div class="percent-badge" style="left: 22%">7%</div>
+										<div id="month-gauge-badge" class="percent-badge" style="left: 0%">0%</div>
 										<div class="gauge-wrapper">
-											<div class="gauge-segment attained" style="flex: 22"></div>
+											<div id="month-gauge-bar" class="gauge-segment attained" style="flex: 0"></div>
 											<div class="gauge-divider"></div>
-											<div class="gauge-segment remaining" style="flex: 78"></div>
+											<div class="gauge-segment remaining" style="flex: 100"></div>
 										</div>
-										<tp-text class="tp-text footnote bold">예상 사용량 대비 7%를 달성했어요!</tp-text>
+										<tp-text id="month-gauge-desc" class="tp-text footnote bold">데이터 수신 중...</tp-text>
 									</div>
 								</div>
 							</div>
@@ -88,11 +87,11 @@
 						<div class="card__text">
 							<div class="row">
 								<tp-text class="tp-text footnote regular">지금까지</tp-text>
-								<tp-text class="tp-text callout bold">99 CO₂</tp-text>
+								<tp-text id="total-saved-co2" class="tp-text callout bold">- CO₂</tp-text>
 								<tp-text class="tp-text footnote regular">이산화탄소 배출량을 감축했어요.</tp-text>
 							</div>
 							<div class="row">
-								<tp-text class="tp-text title-1 bold">10그루</tp-text>
+								<tp-text id="total-tree-count" class="tp-text title-1 bold">-그루</tp-text>
 								<tp-text class="tp-text footnote regular">소나무를 심은 것과 같아요.</tp-text>
 							</div>
 						</div>
@@ -107,12 +106,12 @@
 					<div class="card__content">
 						<div class="usage">
 							<tp-text class="tp-text footnote regular">전력 사용량</tp-text>
-							<tp-text class="tp-text title-2 regular">45.51 kWh</tp-text>
+							<tp-text id="month-power-usage" class="tp-text title-2 regular">- kWh</tp-text>
 						</div>
 						<div class="vertical-divider"></div>
 						<div class="charge">
 							<tp-text class="tp-text footnote regular">예상 요금</tp-text>
-							<tp-text class="tp-text title-2 regular">9,470원</tp-text>
+							<tp-text id="month-power-charge" class="tp-text title-2 regular">-원</tp-text>
 						</div>
 					</div>
 				</div>
@@ -133,8 +132,8 @@
 							<tp-text class="tp-text footnote reqular">가동 현황</tp-text>
 							<div class="status">
 								<div class="status-item">
-									<tp-text class="tp-text title-2 bold">17/20</tp-text>
-									<tp-text class="tp-text subheadline reqular">(통신이상:1)</tp-text>
+									<tp-text id="device-status-count" class="tp-text title-2 bold">-/-</tp-text>
+									<tp-text id="device-abnormal-count" class="tp-text subheadline reqular">-</tp-text>
 								</div>
 							</div>
 						</div>
@@ -193,74 +192,31 @@
 									<span class="dot"></span>
 									<tp-text class="tp-text footnote bold">점검 필요</tp-text>
 								</span>
-								<tp-text class="tp-text footnote bold">2개 구역</tp-text>
+								<tp-text id="count-danger" class="tp-text footnote bold">-개 구역</tp-text>
 							</div>
 							<div class="tab warning">
 								<span class="box">
 									<span class="dot"></span>
 									<tp-text class="tp-text footnote bold">운전 활발</tp-text>
 								</span>
-								<tp-text class="tp-text footnote bold">4개 구역</tp-text>
+								<tp-text id="count-warning" class="tp-text footnote bold">-개 구역</tp-text>
 							</div>
 							<div class="tab normal">
 								<span class="box">
 									<span class="dot"></span>
 									<tp-text class="tp-text footnote bold">정상</tp-text>
 								</span>
-								<tp-text class="tp-text footnote bold">14개 구역</tp-text>
+								<tp-text id="count-normal" class="tp-text footnote bold">-개 구역</tp-text>
 							</div>
 							<div class="tab gray">
 								<span class="box">
 									<span class="dot"></span>
 									<tp-text class="tp-text footnote bold">기타</tp-text>
 								</span>
-								<tp-text class="tp-text footnote bold">2개 구역</tp-text>
+								<tp-text id="count-etc" class="tp-text footnote bold">-개 구역</tp-text>
 							</div>
 						</div>
-						<div class="district-card-list">
-							<div class="district-card danger">
-								<div class="dist-card__header">
-									<tp-text class="tp-text title-3 bold">사무실 3</tp-text>
-									<span class="header-row">
-										<span class="dot"></span>
-										<tp-text class="tp-text footnote bold">점검 필요</tp-text>
-									</span>
-								</div>
-								<div class="dist-card-body">
-									<div class="info-row">
-										<tp-text class="tp-text subheadline regular">현재 온도 </tp-text>
-										<tp-text class="tp-text subheadline bold">22°C</tp-text>
-									</div>
-									<div class="info-row">
-										<tp-text class="tp-text subheadline regular">제어 모드</tp-text>
-										<div class="dist-card-color purple">
-											<tp-text class="tp-text caption-2 bold">목표 절감</tp-text>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="district-card danger">
-								<div class="dist-card__header">
-									<tp-text class="tp-text title-3 bold">부품 창고 1</tp-text>
-									<span class="header-row">
-										<span class="dot"></span>
-										<tp-text class="tp-text footnote bold">점검 필요</tp-text>
-									</span>
-								</div>
-								<div class="dist-card-body">
-									<div class="info-row">
-										<tp-text class="tp-text subheadline regular">현재 온도 </tp-text>
-										<tp-text class="tp-text subheadline bold">22°C</tp-text>
-									</div>
-									<div class="info-row">
-										<tp-text class="tp-text subheadline regular">제어 모드</tp-text>
-										<div class="dist-card-color purple">
-											<tp-text class="tp-text caption-2 bold">목표 절감</tp-text>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
+						<div id="district-card-list-container" class="district-card-list"></div>
 					</div>
 				</div>
 			</div>
