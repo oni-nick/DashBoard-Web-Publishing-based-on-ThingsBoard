@@ -110,17 +110,19 @@ async function loadData() {
         { type: "TIME_SERIES", key: "totalSavedCO2" },
         { type: "TIME_SERIES", key: "totalTreeCount" },
         { type: "TIME_SERIES", key: "totalSavedCost" },
-        
-        { type: "TIME_SERIES", key: "deviceSavedPower" }, 
-        { type: "TIME_SERIES", key: "savedPower" },       
+        { type: "TIME_SERIES", key: "totalOriginPowerUsage" },  // 게이지 계산용 추가
+
+        { type: "TIME_SERIES", key: "deviceSavedPower" },
+        { type: "TIME_SERIES", key: "savedPower" },
         { type: "TIME_SERIES", key: "powerUsage" },
+        { type: "TIME_SERIES", key: "originPowerUsage" },  // 게이지 계산용 추가
         { type: "TIME_SERIES", key: "temperature" },
-        
+
         // 이름 관련 키 (중복 요청해도 안전함)
-        { type: "ATTRIBUTE", key: "name" }, 
+        { type: "ATTRIBUTE", key: "name" },
         { type: "ATTRIBUTE", key: "tag" },
-        { type: "TIME_SERIES", key: "tag" }, 
-        
+        { type: "TIME_SERIES", key: "tag" },
+
         { type: "ATTRIBUTE", key: "status" },
         { type: "ATTRIBUTE", key: "controlMode" }
     ];
@@ -137,7 +139,7 @@ async function loadData() {
         const startTs = new Date().getTime() - 86400000 * 365; // 1년치
         const endTS = moment().valueOf();
         
-        const targetKeys = ["totalSavedPower", "totalSavedCost", "totalSavedCO2", "totalTreeCount"];
+        const targetKeys = ["totalSavedPower", "totalSavedCost", "totalSavedCO2", "totalTreeCount", "totalOriginPowerUsage"];
 
         try {
             let tsData = await self.ctx.http.get(
@@ -235,52 +237,109 @@ async function loadData() {
 
     function updateLatestData(data, KEYS) {
         if (data.data) {
+            log("═══════════════════════════════════════════════════════════");
+            log("📥 [초기 데이터 수신] data.data:", JSON.stringify(data.data, null, 2));
+            log("═══════════════════════════════════════════════════════════");
             const latestCmd = _.cloneDeep(CMD_TEMPLATE);
             latestCmd.entityDataCmds = [{ cmdId: data.cmdId, latestCmd: { keys: KEYS } }];
             custom.socket.send(JSON.stringify(latestCmd));
-            if (data.data.data) processUpdateData(data.data.data);
+            if (data.data.data) processUpdateData(data.data.data, "INITIAL");
             updateData();
         }
         if (data.update) {
-            processUpdateData(data.update);
+            log("═══════════════════════════════════════════════════════════");
+            log("🔄 [업데이트 데이터 수신] data.update:", JSON.stringify(data.update, null, 2));
+            log("═══════════════════════════════════════════════════════════");
+            processUpdateData(data.update, "UPDATE");
             updateData();
         }
     }
 
-    function processUpdateData(items) {
+    function processUpdateData(items, source = "UNKNOWN") {
+        log(`\n🔍 [processUpdateData] 소스: ${source}, 항목 수: ${items.length}`);
+
         for (let i in items) {
             let targetEntity = items[i].entityId;
             if (!targetEntity || !targetEntity.id) continue;
 
-            if (!custom.latestData[targetEntity.id]) custom.latestData[targetEntity.id] = {};
+            const entityId = targetEntity.id;
+            const isNew = !custom.latestData[entityId];
+            if (isNew) custom.latestData[entityId] = {};
+
+            log(`\n──────────────────────────────────────`);
+            log(`📌 [${source}] Entity #${i}: ${entityId} (${isNew ? '신규' : '기존'})`);
+
+            // 현재 저장된 이름 정보
+            const prevName = custom.latestData[entityId].name;
+            const prevLabel = custom.latestData[entityId].label;
+            const prevTag = custom.latestData[entityId].tag;
+            log(`   📝 이전 이름정보: name="${prevName}", label="${prevLabel}", tag="${prevTag}"`);
 
             // Entity Fields 처리 (name, label 등)
             if (items[i].entityFields) {
+                log(`   📂 entityFields:`, JSON.stringify(items[i].entityFields));
                 for (let key in items[i].entityFields) {
-                    custom.latestData[targetEntity.id][key] = items[i].entityFields[key].value;
+                    const newVal = items[i].entityFields[key].value;
+                    const oldVal = custom.latestData[entityId][key];
+                    if (oldVal !== newVal) {
+                        log(`      ✏️ [entityFields] ${key}: "${oldVal}" → "${newVal}"`);
+                    }
+                    custom.latestData[entityId][key] = newVal;
                 }
             }
 
             // 데이터 통합 (Time-Series)
             if (items[i].latest && items[i].latest.TIME_SERIES) {
+                log(`   📈 TIME_SERIES keys:`, Object.keys(items[i].latest.TIME_SERIES));
                 for (let key in items[i].latest.TIME_SERIES) {
-                    custom.latestData[targetEntity.id][key] = items[i].latest.TIME_SERIES[key].value;
+                    const newVal = items[i].latest.TIME_SERIES[key].value;
+                    const oldVal = custom.latestData[entityId][key];
+                    // 이름 관련 키만 상세 로그
+                    if (['name', 'label', 'tag'].includes(key) && oldVal !== newVal) {
+                        log(`      ⚠️ [TIME_SERIES] ${key}: "${oldVal}" → "${newVal}"`);
+                    }
+                    custom.latestData[entityId][key] = newVal;
                 }
             }
             // 데이터 통합 (Attribute)
             if (items[i].latest && items[i].latest.ATTRIBUTE) {
+                log(`   🏷️ ATTRIBUTE keys:`, Object.keys(items[i].latest.ATTRIBUTE));
                 for (let key in items[i].latest.ATTRIBUTE) {
-                    custom.latestData[targetEntity.id][key] = items[i].latest.ATTRIBUTE[key].value;
+                    const newVal = items[i].latest.ATTRIBUTE[key].value;
+                    const oldVal = custom.latestData[entityId][key];
+                    // 이름 관련 키만 상세 로그
+                    if (['name', 'label', 'tag'].includes(key) && oldVal !== newVal) {
+                        log(`      ⚠️ [ATTRIBUTE] ${key}: "${oldVal}" → "${newVal}"`);
+                    }
+                    custom.latestData[entityId][key] = newVal;
                 }
             }
             // 데이터 통합 (ENTITY_FIELD - Device Group 응답용)
             if (items[i].latest && items[i].latest.ENTITY_FIELD) {
+                log(`   🔖 ENTITY_FIELD keys:`, Object.keys(items[i].latest.ENTITY_FIELD));
                 for (let key in items[i].latest.ENTITY_FIELD) {
-                    custom.latestData[targetEntity.id][key] = items[i].latest.ENTITY_FIELD[key].value;
+                    const newVal = items[i].latest.ENTITY_FIELD[key].value;
+                    const oldVal = custom.latestData[entityId][key];
+                    if (['name', 'label', 'tag'].includes(key) && oldVal !== newVal) {
+                        log(`      ⚠️ [ENTITY_FIELD] ${key}: "${oldVal}" → "${newVal}"`);
+                    }
+                    custom.latestData[entityId][key] = newVal;
                 }
             }
+
+            // 최종 이름 정보 출력
+            const finalName = custom.latestData[entityId].name;
+            const finalLabel = custom.latestData[entityId].label;
+            const finalTag = custom.latestData[entityId].tag;
+            log(`   ✅ 최종 이름정보: name="${finalName}", label="${finalLabel}", tag="${finalTag}"`);
         }
-        log(`📊 데이터 업데이트: ${Object.keys(custom.latestData).length}개 엔티티`);
+
+        log(`\n📊 총 엔티티 수: ${Object.keys(custom.latestData).length}개`);
+        log(`📋 전체 latestData 요약:`);
+        Object.keys(custom.latestData).forEach(id => {
+            const d = custom.latestData[id];
+            log(`   - ${id.substring(0,8)}...: name="${d.name}", label="${d.label}", tag="${d.tag}"`);
+        });
     }
 }
 
@@ -303,7 +362,8 @@ function updateData() {
 
         // 2. "복도" 이름 제외
         const device = custom.latestData[id];
-        const name = device.tag || device.label || device.name || '';
+        // [수정] 이름 순서: label → name → tag (name이 고유하므로 tag보다 우선)
+        const name = device.label || device.name || device.tag || '';
         if (name.includes('복도')) return false;
 
         return true;
@@ -330,11 +390,15 @@ function updateData() {
     setText('month-power-usage', formatNumber(savedPower * 0.1, 2) + ' kWh');
     setText('month-power-charge', formatNumber(savedCost * 0.1) + '원');
 
-    // B. 게이지바
-    const targetPower = 50000;
-    const percent = Math.min(100, Math.round((savedPower) * 100));
-    updateGauge('year', percent);
-    updateGauge('month', Math.round(percent / 3));
+    // B. 게이지바 (originPowerUsage 대비 savedPower 비율)
+    const originPowerUsage = parseFloat(rootData.totalOriginPowerUsage || 0);
+    let yearPercent = 0;
+    if (originPowerUsage > 0) {
+        yearPercent = Math.min(100, Math.round((savedPower / originPowerUsage) * 100));
+    }
+    log(`📊 게이지 계산: savedPower=${savedPower}, originPowerUsage=${originPowerUsage}, percent=${yearPercent}%`);
+    updateGauge('year', yearPercent);
+    updateGauge('month', Math.round(yearPercent / 3));  // 월간은 임시로 1/3
 
     // C. 리스트
     renderDistrictList(devicesData);
@@ -405,8 +469,8 @@ function processBarChartData(devices) {
     if (!devices || devices.length === 0) return [];
 
     const ranking = devices.map(device => {
-        // [중요] 이름 찾기 순서: tag -> label -> name -> ID
-        const label = device.tag || device.label || device.name || 'Unknown';
+        // [수정] 이름 찾기 순서: label -> name -> tag (name이 고유하므로 tag보다 우선)
+        const label = device.label || device.name || device.tag || 'Unknown';
         
         let val = 0;
         if (device.deviceSavedPower) val = parseFloat(device.deviceSavedPower);
@@ -520,17 +584,16 @@ function renderDistrictList(devices) {
     let counts = { normal: 0, warning: 0, danger: 0, etc: 0 };
     
     devices.forEach(device => {
-        // [중요] 이름 찾기 순서: tag -> label -> name -> ID
-        const name = device.tag || device.label || device.name || '알 수 없음';
+        // [수정] 이름 찾기 순서: label -> name -> tag (name이 고유하므로 tag보다 우선)
+        const name = device.label || device.name || device.tag || '알 수 없음';
         const temp = device.temperature ? parseFloat(device.temperature).toFixed(1) : '-';
         const rawStatus = device.status || 'unknown';
         const mode = device.controlMode || '수동 제어';
 
-        let statusClass = 'gray';
+        let statusClass = 'danger';  // 기본값을 danger로 변경
         if (rawStatus === 'normal') { statusClass = 'normal'; counts.normal++; }
         else if (rawStatus === 'warning') { statusClass = 'warning'; counts.warning++; }
-        else if (rawStatus === 'danger' || rawStatus === 'check') { statusClass = 'danger'; counts.danger++; }
-        else { counts.etc++; }
+        else { statusClass = 'danger'; counts.danger++; }  // 그 외 모두 '점검 필요'로 처리
 
         const cardHtml = `
             <div class="district-card ${statusClass}">
@@ -567,7 +630,7 @@ function renderDistrictList(devices) {
 
 function getStatusText(status) {
     const map = { 'normal': '정상', 'warning': '운전 활발', 'danger': '점검 필요', 'check': '점검 필요' };
-    return map[status] || '기타';
+    return map[status] || '점검 필요';  // '기타' → '점검 필요'로 변경
 }
 
 function ensureD3(callback) {
