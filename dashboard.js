@@ -85,8 +85,9 @@ function defineVariables() {
     if (rootDS && rootDS.entity) {
         custom.ownerDatasource = rootDS;
         custom.rootEntity = rootDS.entity;
+        custom.entityType = rootDS.entity.id.entityType; // Entity 타입 저장
         custom.isSample = false;
-        log(`✅ 타겟 설정: [${custom.rootEntity.name}] (ID: ${custom.rootEntity.id.id})`);
+        log(`✅ 타겟 설정: [${custom.rootEntity.name}] (Type: ${custom.entityType}, ID: ${custom.rootEntity.id.id})`);
     } else {
         custom.isSample = true;
         error("❌ Root Entity 설정 실패");
@@ -183,23 +184,47 @@ async function loadData() {
             log("🔌 WebSocket 연결됨");
             if (!custom.rootEntity || !custom.rootEntity.id) return;
 
+            const entityType = custom.entityType;
+            let entityFilter;
+
+            // Entity 타입에 따라 적절한 필터 생성
+            if (entityType === 'ENTITY_GROUP') {
+                // Device Group인 경우: 그룹 내 엔티티 조회
+                log("📂 Entity Group 모드로 데이터 조회");
+                entityFilter = {
+                    type: "entityGroupList",
+                    resolveMultiple: true,
+                    groupStateEntity: false,
+                    stateEntityParamName: null,
+                    defaultStateEntity: null,
+                    groupIds: [custom.rootEntity.id.id]
+                };
+            } else {
+                // Device/Asset인 경우: 기존 방식 (관계 기반 조회)
+                log("📱 Device/Asset 모드로 데이터 조회");
+                entityFilter = {
+                    type: "deviceSearchQuery",
+                    resolveMultiple: true,
+                    rootStateEntity: false,
+                    stateEntityParamName: null,
+                    defaultStateEntity: null,
+                    rootEntity: custom.rootEntity.id,
+                    direction: "FROM",
+                    maxLevel: 2,
+                    fetchLastLevelOnly: false,
+                    relationType: "Contains",
+                };
+            }
+
             const entityDataCmds = _.cloneDeep(CMD_TEMPLATE);
             entityDataCmds.entityDataCmds = [{
                 query: {
-                    entityFilter: {
-                        type: "deviceSearchQuery",
-                        resolveMultiple: true,
-                        rootStateEntity: false,
-                        stateEntityParamName: null,
-                        defaultStateEntity: null,
-                        rootEntity: custom.rootEntity.id,
-                        direction: "FROM",
-                        maxLevel: 2,
-                        fetchLastLevelOnly: false,
-                        relationType: "Contains",
-                    },
+                    entityFilter: entityFilter,
                     pageLink: { pageSize: 1024, page: 0, sortOrder: { key: { type: "ENTITY_FIELD", key: "createdTime" }, direction: "ASC" } },
-                    entityFields: [],
+                    entityFields: [
+                        { type: "ENTITY_FIELD", key: "name" },
+                        { type: "ENTITY_FIELD", key: "label" }
+                    ],
                     latestValues: KEYS,
                 },
                 cmdId: 1,
@@ -229,6 +254,13 @@ async function loadData() {
 
             if (!custom.latestData[targetEntity.id]) custom.latestData[targetEntity.id] = {};
 
+            // Entity Fields 처리 (name, label 등)
+            if (items[i].entityFields) {
+                for (let key in items[i].entityFields) {
+                    custom.latestData[targetEntity.id][key] = items[i].entityFields[key].value;
+                }
+            }
+
             // 데이터 통합 (Time-Series)
             if (items[i].latest && items[i].latest.TIME_SERIES) {
                 for (let key in items[i].latest.TIME_SERIES) {
@@ -241,7 +273,14 @@ async function loadData() {
                     custom.latestData[targetEntity.id][key] = items[i].latest.ATTRIBUTE[key].value;
                 }
             }
+            // 데이터 통합 (ENTITY_FIELD - Device Group 응답용)
+            if (items[i].latest && items[i].latest.ENTITY_FIELD) {
+                for (let key in items[i].latest.ENTITY_FIELD) {
+                    custom.latestData[targetEntity.id][key] = items[i].latest.ENTITY_FIELD[key].value;
+                }
+            }
         }
+        log(`📊 데이터 업데이트: ${Object.keys(custom.latestData).length}개 엔티티`);
     }
 }
 
@@ -261,10 +300,10 @@ function updateData() {
     const deviceIds = Object.keys(custom.latestData).filter(id => {
         // 1. 대장(Root) 제외
         if (id === rootId) return false;
-        
+
         // 2. "복도" 이름 제외
         const device = custom.latestData[id];
-        const name = device.tag || device.name || '';
+        const name = device.tag || device.label || device.name || '';
         if (name.includes('복도')) return false;
 
         return true;
@@ -366,8 +405,8 @@ function processBarChartData(devices) {
     if (!devices || devices.length === 0) return [];
 
     const ranking = devices.map(device => {
-        // [중요] 이름 찾기 순서: tag -> name -> ID
-        const label = device.tag || device.name || 'Unknown';
+        // [중요] 이름 찾기 순서: tag -> label -> name -> ID
+        const label = device.tag || device.label || device.name || 'Unknown';
         
         let val = 0;
         if (device.deviceSavedPower) val = parseFloat(device.deviceSavedPower);
@@ -481,7 +520,8 @@ function renderDistrictList(devices) {
     let counts = { normal: 0, warning: 0, danger: 0, etc: 0 };
     
     devices.forEach(device => {
-        const name = device.tag || device.name || '알 수 없음';
+        // [중요] 이름 찾기 순서: tag -> label -> name -> ID
+        const name = device.tag || device.label || device.name || '알 수 없음';
         const temp = device.temperature ? parseFloat(device.temperature).toFixed(1) : '-';
         const rawStatus = device.status || 'unknown';
         const mode = device.controlMode || '수동 제어';
