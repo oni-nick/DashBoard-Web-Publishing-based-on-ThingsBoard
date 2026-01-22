@@ -110,7 +110,8 @@ async function loadData() {
         { type: "TIME_SERIES", key: "totalSavedCO2" },
         { type: "TIME_SERIES", key: "totalTreeCount" },
         { type: "TIME_SERIES", key: "totalSavedCost" },
-        { type: "TIME_SERIES", key: "totalOriginPowerUsage" },  // 게이지 계산용 추가
+        { type: "TIME_SERIES", key: "totalOriginPowerUsage" },  // 게이지 계산용
+        { type: "TIME_SERIES", key: "totalPowerUsage" },       // 게이지 계산용
 
         { type: "TIME_SERIES", key: "deviceSavedPower" },
         { type: "TIME_SERIES", key: "savedPower" },
@@ -139,7 +140,7 @@ async function loadData() {
         const startTs = new Date().getTime() - 86400000 * 365; // 1년치
         const endTS = moment().valueOf();
         
-        const targetKeys = ["totalSavedPower", "totalSavedCost", "totalSavedCO2", "totalTreeCount", "totalOriginPowerUsage"];
+        const targetKeys = ["totalSavedPower", "totalSavedCost", "totalSavedCO2", "totalTreeCount", "totalOriginPowerUsage", "totalPowerUsage"];
 
         try {
             let tsData = await self.ctx.http.get(
@@ -357,16 +358,8 @@ function updateData() {
     const rootData = (rootId && custom.latestData[rootId]) ? custom.latestData[rootId] : {};
 
     const deviceIds = Object.keys(custom.latestData).filter(id => {
-        // 1. 대장(Root) 제외
-        if (id === rootId) return false;
-
-        // 2. "복도" 이름 제외
-        const device = custom.latestData[id];
-        // [수정] 이름 순서: label → name → tag (name이 고유하므로 tag보다 우선)
-        const name = device.label || device.name || device.tag || '';
-        if (name.includes('복도')) return false;
-
-        return true;
+        // 대장(Root)만 제외 (복도 등은 '기타'로 표시)
+        return id !== rootId;
     });
 
     const devicesData = deviceIds.map(id => ({ id: id, ...custom.latestData[id] }));
@@ -384,21 +377,34 @@ function updateData() {
     setText('total-saved-co2', formatNumber(savedCo2, 1) + ' CO₂');
     setText('total-tree-count', formatNumber(treeCount) + '그루');
 
-    // (임시) 월간 데이터
-    setText('month-saved-power', formatNumber(savedPower * 0.1, 2) + ' kWh');
-    setText('month-saved-cost', formatNumber(savedCost * 0.1) + '원');
-    setText('month-power-usage', formatNumber(savedPower * 0.1, 2) + ' kWh');
-    setText('month-power-charge', formatNumber(savedCost * 0.1) + '원');
+    // 월간 데이터: 연간 데이터를 12로 나눔
+    setText('month-saved-power', formatNumber(savedPower / 12, 2) + ' kWh');
+    setText('month-saved-cost', formatNumber(savedCost / 12) + '원');
+    setText('month-power-usage', formatNumber(savedPower / 12, 2) + ' kWh');
+    setText('month-power-charge', formatNumber(savedCost / 12) + '원');
 
-    // B. 게이지바 (originPowerUsage 대비 savedPower 비율)
-    const originPowerUsage = parseFloat(rootData.totalOriginPowerUsage || 0);
-    let yearPercent = 0;
-    if (originPowerUsage > 0) {
-        yearPercent = Math.min(100, Math.round((savedPower / originPowerUsage) * 100));
+    // B. 게이지바 (powerUsage / originPowerUsage 비율) - 역산: 100 - percent
+    // 각 디바이스의 powerUsage, originPowerUsage 합산
+    let sumPowerUsage = parseFloat(rootData.totalPowerUsage || 0);
+    let sumOriginPowerUsage = parseFloat(rootData.totalOriginPowerUsage || 0);
+
+    // rootData에 값이 없으면 디바이스들의 합계 사용
+    if (sumOriginPowerUsage === 0) {
+        devicesData.forEach(device => {
+            sumPowerUsage += parseFloat(device.powerUsage || 0);
+            sumOriginPowerUsage += parseFloat(device.originPowerUsage || 0);
+        });
     }
-    log(`📊 게이지 계산: savedPower=${savedPower}, originPowerUsage=${originPowerUsage}, percent=${yearPercent}%`);
-    updateGauge('year', yearPercent);
-    updateGauge('month', Math.round(yearPercent / 3));  // 월간은 임시로 1/3
+
+    let yearPercent = 0;
+    if (sumOriginPowerUsage > 0) {
+        yearPercent = Math.min(100, Math.round((sumPowerUsage / sumOriginPowerUsage) * 100));
+    }
+    // 역산: 100 - percent로 게이지 채움
+    const invertedPercent = 100 - yearPercent;
+    log(`📊 게이지 계산: powerUsage=${sumPowerUsage}, originPowerUsage=${sumOriginPowerUsage}, percent=${yearPercent}% → 역산: ${invertedPercent}%`);
+    updateGauge('year', invertedPercent);
+    updateGauge('month', invertedPercent);  // 월간도 같은 비율
 
     // C. 리스트
     renderDistrictList(devicesData);
@@ -570,9 +576,11 @@ function formatNumber(num, fixed = 0) {
 
 function updateGauge(prefix, percent) {
     const bar = document.getElementById(`${prefix}-gauge-bar`);
+    const remaining = document.getElementById(`${prefix}-gauge-remaining`);
     const badge = document.getElementById(`${prefix}-gauge-badge`);
     const desc = document.getElementById(`${prefix}-gauge-desc`);
     if (bar) bar.style.flex = percent;
+    if (remaining) remaining.style.flex = 100 - percent;
     if (badge) { badge.innerText = `${percent}%`; badge.style.left = `${percent}%`; }
     if (desc) desc.innerText = `예상 사용량 대비 ${percent}%를 달성했어요!`;
 }
@@ -582,26 +590,44 @@ function renderDistrictList(devices) {
     if (!container) return;
     container.innerHTML = '';
     let counts = { normal: 0, warning: 0, danger: 0, etc: 0 };
-    
+
     devices.forEach(device => {
-        // [수정] 이름 찾기 순서: label -> name -> tag (name이 고유하므로 tag보다 우선)
         const name = device.label || device.name || device.tag || '알 수 없음';
         const temp = device.temperature ? parseFloat(device.temperature).toFixed(1) : '-';
         const rawStatus = device.status || 'unknown';
         const mode = device.controlMode || '수동 제어';
 
-        let statusClass = 'danger';  // 기본값을 danger로 변경
-        if (rawStatus === 'normal') { statusClass = 'normal'; counts.normal++; }
-        else if (rawStatus === 'warning') { statusClass = 'warning'; counts.warning++; }
-        else { statusClass = 'danger'; counts.danger++; }  // 그 외 모두 '점검 필요'로 처리
+        // 상태 분류: '복도' 등 특수 장비는 'etc'로 분류
+        let statusClass = 'normal';
+        let statusCategory = 'normal';
+        const isEtcDevice = name.includes('복도');
+
+        if (isEtcDevice) {
+            statusClass = 'gray';
+            statusCategory = 'etc';
+            counts.etc++;
+        } else if (rawStatus === 'danger' || rawStatus === 'check') {
+            statusClass = 'danger';
+            statusCategory = 'danger';
+            counts.danger++;
+        } else if (rawStatus === 'warning') {
+            statusClass = 'warning';
+            statusCategory = 'warning';
+            counts.warning++;
+        } else {
+            // 기본값: 정상 (normal, unknown, 없음 모두 정상 처리)
+            statusClass = 'normal';
+            statusCategory = 'normal';
+            counts.normal++;
+        }
 
         const cardHtml = `
-            <div class="district-card ${statusClass}">
+            <div class="district-card ${statusClass}" data-status="${statusCategory}">
                 <div class="dist-card__header">
                     <tp-text class="tp-text title-3 bold">${name}</tp-text>
                     <span class="header-row">
                         <span class="dot"></span>
-                        <tp-text class="tp-text footnote bold">${getStatusText(rawStatus)}</tp-text>
+                        <tp-text class="tp-text footnote bold">${isEtcDevice ? '기타' : getStatusText(rawStatus)}</tp-text>
                     </span>
                 </div>
                 <div class="dist-card-body">
@@ -619,18 +645,119 @@ function renderDistrictList(devices) {
             </div>`;
         container.insertAdjacentHTML('beforeend', cardHtml);
     });
-    
+
     setText('count-normal', `${counts.normal}개 구역`);
     setText('count-warning', `${counts.warning}개 구역`);
     setText('count-danger', `${counts.danger}개 구역`);
     setText('count-etc', `${counts.etc}개 구역`);
     setText('device-status-count', `${counts.normal}/${devices.length}`);
     setText('device-abnormal-count', `(점검필요:${counts.danger})`);
+
+    // 탭 필터 클릭 이벤트 등록 및 상태 적용
+    setupStatusFilter(counts);
+}
+
+// 현재 선택된 필터 상태 저장 (전역)
+let currentFilter = null;
+let currentCounts = { normal: 0, warning: 0, danger: 0, etc: 0 };
+
+// 배경색 업데이트 함수 (전역)
+function updateContainerBackground(category, hasCards) {
+    const container = document.getElementById('district-card-list-container');
+    if (!container) return;
+    // 모든 배경색 클래스 제거
+    container.classList.remove('bg-danger', 'bg-warning', 'bg-normal', 'bg-etc');
+    // 카드가 있으면 해당 배경색 추가
+    if (hasCards && category) {
+        const bgClass = category === 'etc' ? 'bg-etc' : `bg-${category}`;
+        container.classList.add(bgClass);
+    }
+}
+
+function setupStatusFilter(counts) {
+    const tabs = document.querySelectorAll('.status-tabs .tab');
+    const container = document.getElementById('district-card-list-container');
+    if (!tabs.length) return;
+
+    // 전역 counts 업데이트
+    currentCounts = { ...counts };
+
+    // 카드가 없는 탭은 disabled 처리 (시각적으로만, 클릭은 가능)
+    tabs.forEach(tab => {
+        let category = '';
+        if (tab.classList.contains('danger')) category = 'danger';
+        else if (tab.classList.contains('warning')) category = 'warning';
+        else if (tab.classList.contains('normal')) category = 'normal';
+        else if (tab.classList.contains('gray')) category = 'etc';
+
+        const count = counts[category] || 0;
+        if (count === 0) {
+            tab.classList.add('disabled');
+        } else {
+            tab.classList.remove('disabled');
+        }
+    });
+
+    // 이전 필터 상태 복원
+    if (currentFilter) {
+        const cards = document.querySelectorAll('.district-card');
+        const activeTab = document.querySelector(`.status-tabs .tab.${currentFilter === 'etc' ? 'gray' : currentFilter}`);
+        const hasCards = counts[currentFilter] > 0;
+
+        tabs.forEach(t => t.classList.remove('active'));
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+        cards.forEach(card => {
+            card.style.display = card.dataset.status === currentFilter ? '' : 'none';
+        });
+        updateContainerBackground(currentFilter, hasCards);
+    } else {
+        // 필터가 없으면 배경색 제거
+        updateContainerBackground(null, false);
+    }
+
+    // 이벤트 리스너 등록 (한 번만)
+    tabs.forEach(tab => {
+        if (tab.dataset.filterBound) return;
+        tab.dataset.filterBound = 'true';
+
+        tab.addEventListener('click', function() {
+            let category = '';
+            if (tab.classList.contains('danger')) category = 'danger';
+            else if (tab.classList.contains('warning')) category = 'warning';
+            else if (tab.classList.contains('normal')) category = 'normal';
+            else if (tab.classList.contains('gray')) category = 'etc';
+
+            const cards = document.querySelectorAll('.district-card');
+            const wasActive = tab.classList.contains('active');
+            // 전역 counts 사용
+            const hasCards = currentCounts[category] > 0;
+
+            document.querySelectorAll('.status-tabs .tab').forEach(t => t.classList.remove('active'));
+
+            if (wasActive) {
+                // 이미 활성화된 탭을 다시 클릭하면 필터 해제
+                currentFilter = null;
+                cards.forEach(card => card.style.display = '');
+                updateContainerBackground(null, false);
+            } else {
+                // 새로운 탭 활성화
+                currentFilter = category;
+                tab.classList.add('active');
+                cards.forEach(card => {
+                    card.style.display = card.dataset.status === category ? '' : 'none';
+                });
+                // 카드가 있으면 배경색 표시, 없으면 빈 배경
+                updateContainerBackground(category, hasCards);
+            }
+        });
+    });
 }
 
 function getStatusText(status) {
     const map = { 'normal': '정상', 'warning': '운전 활발', 'danger': '점검 필요', 'check': '점검 필요' };
-    return map[status] || '점검 필요';  // '기타' → '점검 필요'로 변경
+    return map[status] || '정상';
 }
 
 function ensureD3(callback) {
