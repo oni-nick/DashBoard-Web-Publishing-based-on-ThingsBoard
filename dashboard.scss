@@ -34,7 +34,8 @@ body {
 	margin: 0;
 	padding: 0;
 	height: 100%;
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: auto;
 	background-color: $color-bg;
 
 	.page-header {
@@ -46,11 +47,13 @@ body {
 	.page-layout {
 		gap: 20px;
 		display: grid;
-		grid-template-columns: minmax(709px, 1fr), minmax(709px, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		grid-template-rows: 2.2fr 1fr;
 		min-height: 100vh;
+		min-width: 1200px;
 		width: 100%;
 		padding: 0 20px 20px 20px;
+		box-sizing: border-box;
 		grid-template-areas:
 			"left-layout right-layout"
 			"bottom-layout bottom-layout";
@@ -424,11 +427,26 @@ body {
 						}
 					}
 					.district-card-list {
-						background-color: var(--tp-color-red-light);
 						display: flex;
+						flex-wrap: wrap;
 						justify-content: flex-start;
 						padding: 8px;
 						gap: 20px;
+						background-color: transparent;
+						transition: background-color 0.2s ease;
+
+						&.bg-danger {
+							background-color: var(--tp-color-red-light);
+						}
+						&.bg-warning {
+							background-color: var(--tp-color-yellow-light);
+						}
+						&.bg-normal {
+							background-color: var(--tp-color-green-light);
+						}
+						&.bg-etc {
+							background-color: var(--tp-color-gray-light);
+						}
 
 						.district-card {
 							background-color: $color-white;
@@ -438,7 +456,9 @@ body {
 							border: 1px solid $color-border;
 							gap: 16px;
 							padding: 20px 24px;
-							min-width: 339.5px;
+							min-width: 280px;
+							flex: 0 0 auto;
+							box-sizing: border-box;
 
 							.dist-card__header {
 								display: flex;
@@ -449,15 +469,11 @@ body {
 									width: 8px;
 									height: 8px;
 									border-radius: 50%;
-									background-color: var(--tp-color-red-normal);
 								}
 								.header-row {
 									display: flex;
 									align-items: center;
 									gap: 4px;
-									.tp-text {
-										color: var(--tp-color-red-normal);
-									}
 								}
 							}
 							.dist-card-body {
@@ -481,6 +497,48 @@ body {
 										tp-text {
 											color: $badge-purple-text;
 										}
+									}
+								}
+							}
+
+							// 상태별 점과 텍스트 색상
+							&.normal {
+								.dist-card__header {
+									.dot {
+										background-color: var(--tp-color-green-normal);
+									}
+									.header-row .tp-text {
+										color: var(--tp-color-green-normal);
+									}
+								}
+							}
+							&.warning {
+								.dist-card__header {
+									.dot {
+										background-color: var(--tp-color-orange-normal);
+									}
+									.header-row .tp-text {
+										color: var(--tp-color-orange-normal);
+									}
+								}
+							}
+							&.danger {
+								.dist-card__header {
+									.dot {
+										background-color: var(--tp-color-red-normal);
+									}
+									.header-row .tp-text {
+										color: var(--tp-color-red-normal);
+									}
+								}
+							}
+							&.gray {
+								.dist-card__header {
+									.dot {
+										background-color: var(--tp-color-gray-darker);
+									}
+									.header-row .tp-text {
+										color: var(--tp-color-gray-darker);
 									}
 								}
 							}
@@ -596,7 +654,16 @@ $status-color: (
 				}
 			}
 			&.active {
-				border-bottom: 1px solid map-get($colors, dot);
+				border-bottom: 2px solid map-get($colors, dot);
+			}
+			&:hover {
+				cursor: pointer;
+				opacity: 0.8;
+			}
+			&.disabled {
+				.box {
+					background-color: transparent;
+				}
 			}
 		}
 		tp-text {
