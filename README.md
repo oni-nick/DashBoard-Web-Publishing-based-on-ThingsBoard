@@ -1,62 +1,210 @@
-# IoT Energy Management Dashboard (ThingsBoard Widget)
+# IoT Energy Management Dashboard
 
-![Project Status](https://img.shields.io/badge/Status-Active-success)
-![ThingsBoard](https://img.shields.io/badge/Platform-ThingsBoard-blue)
-![Tech](https://img.shields.io/badge/Stack-HTML%2FSCSS%2FJS-yellow)
-![Viz](https://img.shields.io/badge/Visualization-D3.js-orange)
+A custom ThingsBoard widget for real-time energy monitoring and analytics, built from Figma design specifications to a fully functional data-driven dashboard.
 
-> **"Figma 디자인을 살아 숨 쉬는 IoT 대시보드로."** > 인턴십 과정에서 진행된 3주간의 웹 퍼블리싱 및 데이터 시각화 프로젝트입니다. 정적인 디자인 시안을 바탕으로 실제 ThingsBoard 데이터를 연동하여 실시간 에너지 절감 현황을 모니터링하는 커스텀 위젯을 개발했습니다.
+![Dashboard Preview](./assets/dashboard-preview.png)
 
 ---
 
-## Project Journey (2~3 Weeks)
+## Overview
 
-이 프로젝트는 단순한 코딩이 아닌, **디자인에서 실제 서비스로 이어지는 단계적 고도화 과정**을 거쳤습니다.
+This project implements a production-grade energy management dashboard as a ThingsBoard custom widget. The dashboard visualizes real-time power consumption, cost savings, environmental impact metrics, and zone-level analytics for industrial facility monitoring.
 
-### **Phase 1: Web Publishing & UI Implementation**
-- **Goal**: 디자이너가 작업한 **Figma** 시안을 픽셀 퍼펙트(Pixel-perfect)하게 웹으로 구현.
-- **Action**:
-  - Semantic HTML 구조 설계.
-  - SCSS를 활용한 반응형 레이아웃 및 스타일링.
-  - 정적(Static) 데이터를 활용한 UI 프로토타입 완성.
-
-### **Phase 2: Data Integration (ThingsBoard API & WebSocket)**
-- **Goal**: 정적이었던 화면에 **실제 IoT 데이터** 생명을 불어넣기.
-- **Action**:
-  - **WebSocket**을 통한 실시간 텔레메트리(Telemetry) 데이터 구독.
-  - HTTP API를 활용한 과거 시계열 데이터(Timeseries) 비동기(`async/await`) 로딩.
-  - 복잡한 센서 데이터 구조 파싱 및 에러 핸들링 (Lodash, Try-Catch 활용).
-
-### **Phase 3: Visualization & Data Binding**
-- **Goal**: 데이터를 직관적인 정보로 변환하고 사용자 경험(UX) 개선.
-- **Action**:
-  - **D3.js**를 활용한 동적 데이터 시각화 (막대 차트, 라인 차트).
-  - 사무실(1~4) 및 조립라인(1~2) 데이터 분리 로직 구현.
-  - **Loading State(스피너/스켈레톤)** 구현으로 초기 렌더링 깜빡임 현상 해결.
-  - 게이지 바 및 뱃지(Badge) 동적 위치 바인딩.
+The implementation journey spanned three distinct phases: web publishing from design mockups, ThingsBoard API and WebSocket integration, and dynamic data binding with D3.js visualizations.
 
 ---
 
-## 🛠 Tech Stack
+## Technology Stack
 
-| Category | Technologies |
-| :--- | :--- |
-| **Core** | ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript&logoColor=black) ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white) ![SCSS](https://img.shields.io/badge/SCSS-CC6699?logo=sass&logoColor=white) |
-| **IoT Platform** | **ThingsBoard** (Custom Widget API, WebSocket) |
-| **Visualization** | **D3.js (v7)** (Dynamic SVG Charts) |
-| **Library** | **Lodash** (Data processing), **Moment.js** (Date formatting) |
-| **Tools** | **Git/GitHub** (Version Control), **VS Code** |
+| Category | Technology | Purpose |
+|----------|------------|---------|
+| **Core** | HTML5, SCSS, JavaScript (ES6+) | Structure, styling, and application logic |
+| **IoT Platform** | ThingsBoard Professional Edition | Device management, telemetry, and widget framework |
+| **Visualization** | D3.js v7 | SVG-based dynamic charts (line, bar) |
+| **Utilities** | Lodash | Data transformation and processing |
+| **Date Handling** | Moment.js | Timestamp formatting and localization |
+| **Typography** | Pretendard Variable | Korean-optimized web font |
+| **CI/CD** | GitHub Actions | Automated pipeline on push/PR |
 
 ---
 
-## File Structure
+## Project Structure
 
-ThingsBoard 위젯 개발 환경에 맞춰 로직(JS), 스타일(CSS), 구조(HTML)가 분리되어 있습니다.
+```
+DashBoard-Web-Publishing-based-on-ThingsBoard/
+├── dashboard.html          # Widget HTML structure and layout
+├── dashboard.js            # Core logic: API calls, WebSocket, data binding
+├── dashboard.scss          # Component-level styling (BEM convention)
+├── dashboard.css           # Compiled stylesheet
+├── _global_styles.scss     # Design tokens, color palette, typography scale
+├── docs/
+│   └── Documentation for Issue #1.md
+└── .github/
+    └── workflows/
+        └── ci-test.yml     # GitHub Actions workflow
+```
 
-```bash
-DashBoard-Web-Publishing-based-on-ThingsBoard
- ┣ dashboard.html      # 위젯의 뼈대 (HTML Structure)
- ┣ dashboard.js        # 데이터 로딩, 가공, D3 렌더링 로직 (Controller)
- ┣ dashboard.scss      # UI 스타일링 및 애니메이션 (Styles)
- ┣ _global_styles.scss # 공통 변수 및 믹스인
- ┗ README.md           # 프로젝트 문서
+---
+
+## Architecture
+
+### Data Flow
+
+```
+ThingsBoard Platform
+    │
+    ├── HTTP API (Historical Data)
+    │   └── GET /api/plugins/telemetry/{entityType}/{entityId}/values/timeseries
+    │
+    └── WebSocket API (Real-time Updates)
+        └── WSS /api/ws/plugins/telemetry?token={JWT}
+            │
+            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  dashboard.js                                               │
+│  ├── defineVariables()    → Entity type detection           │
+│  ├── loadAllTimeseries()  → Fetch historical data           │
+│  ├── subscribeDatas()     → WebSocket subscription          │
+│  ├── processUpdateData()  → Normalize incoming telemetry    │
+│  └── updateData()         → DOM and chart updates           │
+└─────────────────────────────────────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Rendering Layer                                            │
+│  ├── Text bindings        → Metrics display                 │
+│  ├── Gauge bars           → Progress indicators             │
+│  ├── D3.js line chart     → Monthly savings trend           │
+│  ├── D3.js bar chart      → Zone power usage ranking        │
+│  └── District cards       → Zone status with filtering      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Entity Type Handling
+
+The widget dynamically adapts its data subscription strategy based on the root entity type:
+
+| Entity Type | Filter Strategy | Use Case |
+|-------------|-----------------|----------|
+| `ENTITY_GROUP` | `entityGroupList` | Grouped device collections |
+| `DEVICE` / `ASSET` | `deviceSearchQuery` | Individual devices with relationships |
+
+---
+
+## Development Journey
+
+### Phase 1: Web Publishing
+
+Translated Figma design specifications into semantic HTML and SCSS with pixel-perfect accuracy.
+
+**Key deliverables:**
+- Responsive two-column grid layout using CSS Grid
+- BEM-structured component styling
+- Design token system with SCSS variables for colors, typography, and spacing
+- Static prototype with placeholder data
+
+### Phase 2: ThingsBoard Integration
+
+Connected the static UI to live IoT data through ThingsBoard's HTTP and WebSocket APIs.
+
+**Key deliverables:**
+- JWT-authenticated WebSocket connection for real-time telemetry
+- Historical timeseries data fetching with configurable time ranges
+- Polymorphic entity handling (Device, Asset, Entity Group)
+- Robust error handling with try-catch blocks and fallback values
+
+### Phase 3: Data Binding and Visualization
+
+Implemented dynamic data binding and interactive D3.js visualizations.
+
+**Key deliverables:**
+- D3.js line chart with gradient fill for monthly power savings
+- Horizontal bar chart for zone-level power consumption ranking
+- Gauge bar components with percentage-based positioning
+- Tabbed district card interface with status-based filtering
+- Loading states to prevent UI flicker during data fetch
+
+---
+
+## Features
+
+**Energy Metrics Dashboard**
+- Annual and monthly power savings (kWh)
+- Cost reduction tracking (KRW)
+- Real-time vs. target comparison with progress indicators
+
+**Environmental Impact**
+- CO2 emission reduction calculation
+- Tree equivalent visualization
+
+**Zone Analytics**
+- Per-zone power consumption ranking
+- Device operational status (Normal, Warning, Inspection Required)
+- Control mode distribution (Cost Reduction, Target Reduction, Manual)
+
+**Real-time Updates**
+- WebSocket-based live data streaming
+- Automatic UI refresh on telemetry updates
+
+---
+
+## Widget Integration
+
+This dashboard is designed to run within the ThingsBoard widget framework. To deploy:
+
+1. Create a new custom widget in ThingsBoard
+2. Copy `dashboard.html` content to the HTML tab
+3. Copy `dashboard.js` content to the JavaScript tab
+4. Copy `dashboard.css` content to the CSS tab
+5. Configure the widget datasource with the target entity
+
+The widget expects the following telemetry keys:
+- `totalSavedPower`, `totalSavedCost`, `totalSavedCO2`, `totalTreeCount`
+- `powerUsage`, `estimatedCost`
+- `status`, `controlMode`, `currentTemperature`
+
+---
+
+## API Reference
+
+### HTTP Endpoint
+
+```
+GET /api/plugins/telemetry/{entityType}/{entityId}/values/timeseries
+    ?keys={comma-separated-keys}
+    &startTs={epoch-ms}
+    &endTs={epoch-ms}
+    &agg=NONE
+    &orderBy=ASC
+    &useStrictDataTypes=true
+```
+
+### WebSocket Command Structure
+
+```json
+{
+  "entityDataCmds": [{
+    "query": {
+      "entityFilter": { "type": "entityGroupList", "entityGroupIds": [...] },
+      "pageLink": { "pageSize": 1024 },
+      "entityFields": [...],
+      "latestValues": [...]
+    },
+    "cmdId": 1
+  }]
+}
+```
+
+---
+
+## Documentation
+
+Detailed technical documentation is available in the `docs/` directory:
+
+- [Issue #1 Resolution](./docs/Documentation%20for%20Issue%20%231.md): Device Group data parsing and dynamic entity type detection
+
+---
+
+## License
+
+This project was developed as part of an internship program. Please contact the repository owner for licensing information.
