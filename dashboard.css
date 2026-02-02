@@ -512,6 +512,7 @@ html .page-layout .bottom-layout .card .card__header .key-district-header .weath
 body .page-layout .bottom-layout .card .card__header .key-district-header .weather-text .weather-item {
   display: flex;
   align-items: center;
+  gap: 4px;
 }
 html .page-layout .bottom-layout .card .card__header .key-district-header .weather-text .weather-item tp-text,
 body .page-layout .bottom-layout .card .card__header .key-district-header .weather-text .weather-item tp-text {

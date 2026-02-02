@@ -407,6 +407,7 @@ body {
 						.weather-item {
 							display: flex;
 							align-items: center;
+							gap: 4px; // 아이콘과 텍스트 사이 간격
 						}
 						.weather-item tp-text {
 							display: inline-block;

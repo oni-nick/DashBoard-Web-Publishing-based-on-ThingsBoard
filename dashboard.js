@@ -1,12 +1,39 @@
 /* =================================================================================
- * [Final V4] 
+ * [Final V4]
  * ================================================================================= */
 
+// 로그 제어 시스템
+const DEBUG_FLAGS = {
+    WIDGET: false,       // 기존 위젯 로그
+    WEATHER: true,       // 날씨 관련 로그만 활성화
+    DATA: false,         // 데이터 로딩 로그
+    CHART: false         // 차트 관련 로그
+};
+
 function log(...args) {
-    console.log("%c[Widget]", "background: #000080; color: #fff", ...args);
+    if (DEBUG_FLAGS.WIDGET) {
+        console.log("%c[Widget]", "background: #000080; color: #fff", ...args);
+    }
 }
+
+function logWeather(...args) {
+    if (DEBUG_FLAGS.WEATHER) {
+        console.log("%c[Weather]", "background: #00C851; color: #fff", ...args);
+    }
+}
+
+function logData(...args) {
+    if (DEBUG_FLAGS.DATA) {
+        console.log("%c[Data]", "background: #ff8800; color: #fff", ...args);
+    }
+}
+
 function error(...args) {
     console.error("%c[Error]", "background: #ff0000; color: #fff", ...args);
+}
+
+function errorWeather(...args) {
+    console.error("%c[Weather Error]", "background: #CC0000; color: #fff", ...args);
 }
 
 const CMD_TEMPLATE = {
@@ -21,10 +48,15 @@ const CMD_TEMPLATE = {
     entityCountUnsubscribeCmds: [],
 };
 
-self.onInit = async function () { 
-    // 비동기 함수임을 알려주는 예약어 async, 보통 나중에 데이터 로드 작업처럼 
+self.onInit = async function () {
+    // 비동기 함수임을 알려주는 예약어 async, 보통 나중에 데이터 로드 작업처럼
     // 비동기처리해야하는 부분 앞에 await 붙여서 씀
     log("🚀 onInit 시작 (V4)");
+
+    // moment.js 한글 로케일 설정
+    if (typeof moment !== 'undefined') {
+        moment.locale('ko');
+    }
 
     self.ctx.custom = {};
     let { custom } = self.ctx;
@@ -40,10 +72,13 @@ self.onInit = async function () {
     }
 
     // 2. 데이터 로딩
-    // 1년치 데이터 가져오는 함수, 웹소켓 연결같은 무거운 작업도 있기에 다음줄로 넘어가지 말라는 명시적인 의미로 await 붙임. 
+    // 1년치 데이터 가져오는 함수, 웹소켓 연결같은 무거운 작업도 있기에 다음줄로 넘어가지 말라는 명시적인 의미로 await 붙임.
     await loadData();
 
-    // 3. 화면 갱신
+    // 3. 날씨 데이터 로딩 (병렬 처리)
+    loadWeatherData();
+
+    // 4. 화면 갱신
     updateData();
 };
 
@@ -770,6 +805,147 @@ function ensureD3(callback) {
     script.dataset.d3Loaded = 'true';
     script.onload = () => callback();
     document.head.appendChild(script);
+}
+
+// 날씨 데이터 로딩 함수
+function loadWeatherData() {
+    logWeather("🌤️ loadWeatherData() 함수 시작");
+    const API_KEY = '174c5c33de14b3b6c42d1fccf39fff3f';
+
+    // navigator.geolocation 존재 여부 확인
+    logWeather("🔍 navigator.geolocation 체크:", typeof navigator.geolocation);
+
+    // 1. Geolocation API로 현재 위치 가져오기
+    if (navigator.geolocation) {
+        logWeather("✅ Geolocation API 사용 가능, 현재 위치 요청 중...");
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                logWeather(`📍 현재 위치 성공: 위도 ${lat}, 경도 ${lon}`);
+                fetchWeatherData(lat, lon, API_KEY);
+            },
+            (err) => {
+                errorWeather("❌ 위치 정보를 가져올 수 없습니다:", err.message, "| 코드:", err.code);
+                // 위치 정보가 없으면 서울의 기본값 사용 (37.5665, 126.9780)
+                logWeather("⚠️ 기본 위치(서울)로 날씨 정보를 표시합니다.");
+                fetchWeatherData(37.5665, 126.9780, API_KEY);
+            },
+            {
+                timeout: 10000,
+                enableHighAccuracy: false,
+                maximumAge: 0
+            }
+        );
+    } else {
+        errorWeather("❌ 브라우저에서 Geolocation을 지원하지 않습니다.");
+        // 기본값으로 서울 사용
+        logWeather("⚠️ 기본 위치(서울)로 날씨 정보를 표시합니다.");
+        fetchWeatherData(37.5665, 126.9780, API_KEY);
+    }
+
+    logWeather("✅ loadWeatherData() 함수 종료");
+}
+
+// OpenWeatherMap API 호출
+function fetchWeatherData(lat, lon, apiKey) {
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ko`;
+    logWeather("🌐 OpenWeatherMap API 호출:", url);
+
+    fetch(url)
+        .then(response => {
+            logWeather("📡 API 응답 수신 - 상태:", response.status, response.statusText);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            logWeather("🌤️ 날씨 데이터 파싱 완료:", JSON.stringify(data, null, 2));
+            updateWeatherUI(data);
+        })
+        .catch(err => {
+            errorWeather("❌ 날씨 데이터 요청 실패:", err.message);
+            updateWeatherUI(null);
+        });
+}
+
+// 한국 도시명 영어 → 한글 변환 매핑
+const CITY_NAME_MAP = {
+    'Seoul': '서울',
+    'Busan': '부산',
+    'Incheon': '인천',
+    'Daegu': '대구',
+    'Daejeon': '대전',
+    'Gwangju': '광주',
+    'Ulsan': '울산',
+    'Suwon': '수원',
+    'Changwon': '창원',
+    'Seongnam': '성남',
+    'Goyang': '고양',
+    'Yongin': '용인',
+    'Bucheon': '부천',
+    'Ansan': '안산',
+    'Cheongju': '청주',
+    'Jeonju': '전주',
+    'Anyang': '안양',
+    'Pohang': '포항',
+    'Gimhae': '김해',
+    'Hwaseong': '화성',
+    'Jeju': '제주',
+    'Cheonan': '천안',
+    'Pyeongtaek': '평택'
+};
+
+// 날씨 정보를 UI에 업데이트
+function updateWeatherUI(weatherData) {
+    logWeather("🎨 updateWeatherUI() 함수 시작");
+
+    const locationEl = document.getElementById('weather-location');
+    const tempEl = document.getElementById('weather-temp');
+    const humidityEl = document.getElementById('weather-humidity');
+
+    logWeather("🔍 DOM 요소 확인:", {
+        locationEl: !!locationEl,
+        tempEl: !!tempEl,
+        humidityEl: !!humidityEl
+    });
+
+    if (!weatherData) {
+        errorWeather("❌ weatherData가 null입니다. UI에 실패 메시지 표시");
+        if (locationEl) locationEl.innerText = '날씨 정보 수신 실패';
+        if (tempEl) tempEl.innerText = '-';
+        if (humidityEl) humidityEl.innerText = '-';
+        return;
+    }
+
+    // 지역명 (영어 → 한글 변환)
+    const locationNameEn = weatherData.name || '알 수 없음';
+    const locationName = CITY_NAME_MAP[locationNameEn] || locationNameEn;
+
+    if (locationEl) {
+        locationEl.innerText = locationName;
+        logWeather(`✅ 위치 업데이트: ${locationNameEn} → ${locationName}`);
+    }
+
+    // 현재 온도 및 체감 온도 (형식: 현재°C / 체감°C)
+    const currentTemp = weatherData.main.temp;
+    const feelsLike = weatherData.main.feels_like;
+    if (tempEl) {
+        const tempText = `${Math.round(currentTemp)}°C / ${Math.round(feelsLike)}°C`;
+        tempEl.innerText = tempText;
+        logWeather(`✅ 온도 업데이트: ${tempText}`);
+    }
+
+    // 습도
+    const humidity = weatherData.main.humidity;
+    if (humidityEl) {
+        humidityEl.innerText = `${humidity}%`;
+        logWeather(`✅ 습도 업데이트: ${humidity}%`);
+    }
+
+    logWeather(`✅ 날씨 UI 업데이트 완료: ${locationName}, ${Math.round(currentTemp)}°C, 습도 ${humidity}%`);
 }
 
 function parseJSON(json) {
